@@ -1,0 +1,41 @@
+{
+  "name": "cchic-web",
+  "version": "1.0.0",
+  "description": "Sistema de Control de Caja Chica - Web Application",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "server": "node server/index.js",
+    "server:dev": "nodemon server/index.js",
+    "setup": "npm install && node server/init-data.js",
+    "dev:all": "concurrently \"npm run server:dev\" \"npm run dev\" --names \"API,WEB\" --prefix-colors \"blue,cyan\""
+  },
+  "keywords": [
+    "caja-chica",
+    "petty-cash",
+    "expense-tracker",
+    "nextjs",
+    "typescript"
+  ],
+  "author": "Sistemas de Información Paez",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.87.1",
+    "framer-motion": "^10.18.0",
+    "next": "^14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.2",
+    "typescript": "^5.3.3"
+  }
+}

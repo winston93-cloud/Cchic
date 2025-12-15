@@ -1,0 +1,416 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import ExpenseForm from '@/components/ExpenseForm';
+import ExpenseList from '@/components/ExpenseList';
+import ReportsPanel from '@/components/ReportsPanel';
+import { Expense, Balance } from '@/types';
+import { supabase } from '@/lib/supabase';
+
+export default function Home() {
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [balance, setBalance] = useState<Balance>({ totalFunds: 0, totalExpenses: 0, balance: 0 });
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [showReports, setShowReports] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Estados para menús desplegables
+  const [showRegistrosMenu, setShowRegistrosMenu] = useState(false);
+  const [showReportesMenu, setShowReportesMenu] = useState(false);
+  
+  // Referencias para detectar clics fuera
+  const registrosMenuRef = useRef<HTMLDivElement>(null);
+  const reportesMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchExpenses();
+    fetchBalance();
+  }, []);
+
+  // Cerrar menús al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (registrosMenuRef.current && !registrosMenuRef.current.contains(event.target as Node)) {
+        setShowRegistrosMenu(false);
+      }
+      if (reportesMenuRef.current && !reportesMenuRef.current.contains(event.target as Node)) {
+        setShowReportesMenu(false);
+      }
+    };
+
+    if (showRegistrosMenu || showReportesMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showRegistrosMenu, showReportesMenu]);
+
+  const fetchExpenses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('expenses')
+        .select(`
+          *,
+          categories (name, icon, color)
+        `)
+        .eq('status', 'active')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedExpenses = data?.map(exp => ({
+        ...exp,
+        category_name: exp.categories?.name,
+        category_icon: exp.categories?.icon,
+        category_color: exp.categories?.color,
+      })) || [];
+
+      setExpenses(formattedExpenses);
+    } catch (error) {
+      console.error('Error al cargar egresos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchBalance = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('v_balance')
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      setBalance({
+        totalFunds: Number(data.total_funds) || 0,
+        totalExpenses: Number(data.total_expenses) || 0,
+        balance: Number(data.balance) || 0,
+      });
+    } catch (error) {
+      console.error('Error al cargar saldo:', error);
+    }
+  };
+
+  const handleSaveExpense = async (expense: Partial<Expense>) => {
+    try {
+      if (editingExpense) {
+        const { error } = await supabase
+          .from('expenses')
+          .update(expense)
+          .eq('id', editingExpense.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('expenses')
+          .insert([{ ...expense, status: 'active' }]);
+
+        if (error) throw error;
+      }
+
+      fetchExpenses();
+      fetchBalance();
+      setShowExpenseForm(false);
+      setEditingExpense(null);
+    } catch (error) {
+      console.error('Error al guardar egreso:', error);
+      alert('Error al guardar el egreso');
+    }
+  };
+
+  const handleEditExpense = (expense: Expense) => {
+    setEditingExpense(expense);
+    setShowExpenseForm(true);
+    setShowRegistrosMenu(false);
+  };
+
+  const handleDeleteExpense = async (id: number) => {
+    if (!confirm('¿Estás seguro de eliminar este egreso?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('expenses')
+        .update({ status: 'cancelled' })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      fetchExpenses();
+      fetchBalance();
+    } catch (error) {
+      console.error('Error al eliminar egreso:', error);
+      alert('Error al eliminar el egreso');
+    }
+  };
+
+  const handleNewExpense = () => {
+    setEditingExpense(null);
+    setShowExpenseForm(true);
+    setShowRegistrosMenu(false);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  return (
+    <div className="app-container">
+      <motion.header 
+        className="app-header"
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="header-title">
+          <div className="logo-icon">💰</div>
+          <div>
+            <h1>cChic - Control de Caja Chica</h1>
+          </div>
+        </div>
+        <motion.div 
+          className="balance-display"
+          whileHover={{ scale: 1.05 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          <div className="balance-label">SALDO ACTUAL</div>
+          <div className={`balance-amount ${balance.balance < 0 ? 'negative' : ''}`}>
+            {formatCurrency(balance.balance)}
+          </div>
+        </motion.div>
+      </motion.header>
+
+      <main className="main-content">
+        <motion.div 
+          className="control-panel"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="toolbar">
+            {/* Menú Archivo/Registros */}
+            <div 
+              className="dropdown" 
+              ref={registrosMenuRef}
+              onMouseEnter={() => {
+                setShowRegistrosMenu(true);
+                setShowReportesMenu(false);
+              }}
+              onMouseLeave={() => setShowRegistrosMenu(false)}
+            >
+              <motion.button
+                className="btn btn-secondary dropdown-toggle"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span>📁</span> Registros
+                <span>{showRegistrosMenu ? '▲' : '▼'}</span>
+              </motion.button>
+              <AnimatePresence>
+                {showRegistrosMenu && (
+                  <motion.div
+                    className="dropdown-menu"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <div className="dropdown-item" onClick={handleNewExpense}>
+                      <span className="dropdown-item-icon">➕</span>
+                      Registro de egreso
+                    </div>
+                    <div className="dropdown-item" onClick={() => alert('Modificar egreso seleccionado de la tabla')}>
+                      <span className="dropdown-item-icon">✏️</span>
+                      Modificación de egreso
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                      <span className="dropdown-item-icon">🗑️</span>
+                      Eliminación de registros
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                      <span className="dropdown-item-icon">💵</span>
+                      Reposición de fondos
+                    </div>
+                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                      <span className="dropdown-item-icon">📊</span>
+                      Modificación de reposición
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                      <span className="dropdown-item-icon">👤</span>
+                      Nueva persona
+                    </div>
+                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                      <span className="dropdown-item-icon">✏️</span>
+                      Modificación datos persona
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                      <span className="dropdown-item-icon">🏷️</span>
+                      Categorías
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Menú Reportes */}
+            <div 
+              className="dropdown" 
+              ref={reportesMenuRef}
+              onMouseEnter={() => {
+                setShowReportesMenu(true);
+                setShowRegistrosMenu(false);
+              }}
+              onMouseLeave={() => setShowReportesMenu(false)}
+            >
+              <motion.button
+                className="btn btn-primary dropdown-toggle"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span>📊</span> Reportes
+                <span>{showReportesMenu ? '▲' : '▼'}</span>
+              </motion.button>
+              <AnimatePresence>
+                {showReportesMenu && (
+                  <motion.div
+                    className="dropdown-menu"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <div className="dropdown-item" onClick={() => { setShowReports(true); setShowReportesMenu(false); }}>
+                      <span className="dropdown-item-icon">📋</span>
+                      Detalle de movimientos
+                    </div>
+                    <div className="dropdown-item" onClick={() => { setShowReports(true); setShowReportesMenu(false); }}>
+                      <span className="dropdown-item-icon">👤</span>
+                      Detalle por persona
+                    </div>
+                    <div className="dropdown-item" onClick={() => { setShowReports(true); setShowReportesMenu(false); }}>
+                      <span className="dropdown-item-icon">📊</span>
+                      Detalle por persona y categoría
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                      <span className="dropdown-item-icon">📋</span>
+                      Lista de personas
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-item" onClick={() => alert('Exportar a Excel en desarrollo')}>
+                      <span className="dropdown-item-icon">📗</span>
+                      Exportación a MS Excel
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Botón directo Nuevo Egreso */}
+            <motion.button
+              className="btn btn-success"
+              onClick={handleNewExpense}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span>➕</span> Nuevo Egreso
+            </motion.button>
+
+            {/* Botón Actualizar */}
+            <motion.button
+              className="btn btn-glass"
+              onClick={() => {
+                fetchExpenses();
+                fetchBalance();
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span>🔄</span> Actualizar
+            </motion.button>
+          </div>
+
+          {showReports ? (
+            <ReportsPanel onClose={() => setShowReports(false)} />
+          ) : (
+            <>
+              <motion.div 
+                className="stats-grid"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <motion.div 
+                  className="stat-card"
+                  whileHover={{ y: -8 }}
+                  style={{ borderLeftColor: '#00E676' }}
+                >
+                  <div className="stat-label">💰 Total Fondos</div>
+                  <div className="stat-value" style={{ color: '#00E676' }}>
+                    {formatCurrency(balance.totalFunds)}
+                  </div>
+                </motion.div>
+                <motion.div 
+                  className="stat-card"
+                  whileHover={{ y: -8 }}
+                  style={{ borderLeftColor: '#FF1744' }}
+                >
+                  <div className="stat-label">💸 Total Egresos</div>
+                  <div className="stat-value" style={{ color: '#FF1744' }}>
+                    {formatCurrency(balance.totalExpenses)}
+                  </div>
+                </motion.div>
+                <motion.div 
+                  className="stat-card"
+                  whileHover={{ y: -8 }}
+                  style={{ borderLeftColor: '#00E5FF' }}
+                >
+                  <div className="stat-label">📊 Total Registros</div>
+                  <div className="stat-value" style={{ color: '#00E5FF' }}>
+                    {expenses.length}
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {loading ? (
+                <div className="loading">
+                  <div className="spinner"></div>
+                </div>
+              ) : (
+                <ExpenseList
+                  expenses={expenses}
+                  onEdit={handleEditExpense}
+                  onDelete={handleDeleteExpense}
+                  formatCurrency={formatCurrency}
+                />
+              )}
+            </>
+          )}
+        </motion.div>
+      </main>
+
+      <AnimatePresence>
+        {showExpenseForm && (
+          <ExpenseForm
+            expense={editingExpense}
+            onSave={handleSaveExpense}
+            onClose={() => {
+              setShowExpenseForm(false);
+              setEditingExpense(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
