@@ -116,14 +116,14 @@ export default function Home() {
       if (editingExpense) {
         const { error } = await supabase
           .from('expenses')
-          .update(expense)
+          .update(expense as any)
           .eq('id', editingExpense.id);
 
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('expenses')
-          .insert([{ ...expense, status: 'active' }]);
+          .insert([{ ...expense, status: 'active' } as any]);
 
         if (error) throw error;
       }
