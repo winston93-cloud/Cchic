@@ -8,6 +8,9 @@ import ReportsPanel from '@/components/ReportsPanel';
 import { Expense, Balance } from '@/types';
 import { supabase } from '@/lib/supabase';
 
+// Forzar rendering dinámico para evitar errores de build
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [balance, setBalance] = useState<Balance>({ totalFunds: 0, totalExpenses: 0, balance: 0 });
