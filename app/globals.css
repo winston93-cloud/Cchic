@@ -22,8 +22,8 @@
   --error: #FF1744;
   
   /* Gradientes espectaculares */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-ocean: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%);
+  --gradient-primary: linear-gradient(135deg, #1976D2 0%, #0A1929 100%);
+  --gradient-ocean: linear-gradient(135deg, #4da6ff 0%, #1976D2 100%);
   --gradient-sunset: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --gradient-dark: linear-gradient(135deg, #0A1929 0%, #1A237E 100%);
   --gradient-light: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
