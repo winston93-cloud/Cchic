@@ -99,10 +99,12 @@ export default function Home() {
 
       if (error) throw error;
 
+      const balanceData = data as any;
+
       setBalance({
-        totalFunds: Number(data.total_funds) || 0,
-        totalExpenses: Number(data.total_expenses) || 0,
-        balance: Number(data.balance) || 0,
+        totalFunds: Number(balanceData?.total_funds) || 0,
+        totalExpenses: Number(balanceData?.total_expenses) || 0,
+        balance: Number(balanceData?.balance) || 0,
       });
     } catch (error) {
       console.error('Error al cargar saldo:', error);
