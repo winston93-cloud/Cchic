@@ -65,12 +65,22 @@ export default function Home() {
 
       if (error) throw error;
 
-      const formattedExpenses = data?.map(exp => ({
-        ...exp,
+      const formattedExpenses = (data || []).map((exp: any) => ({
+        id: exp.id,
+        date: exp.date,
+        correspondent_to: exp.correspondent_to,
+        executor: exp.executor,
+        category_id: exp.category_id,
+        amount: exp.amount,
+        voucher_number: exp.voucher_number,
+        notes: exp.notes,
+        status: exp.status,
+        created_at: exp.created_at,
+        updated_at: exp.updated_at,
         category_name: exp.categories?.name,
         category_icon: exp.categories?.icon,
         category_color: exp.categories?.color,
-      })) || [];
+      }));
 
       setExpenses(formattedExpenses);
     } catch (error) {
