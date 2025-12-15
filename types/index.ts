@@ -52,6 +52,8 @@ export interface Fund {
 export interface Report {
   executor?: string;
   category_name?: string;
+  category_icon?: string;
+  category_color?: string;
   count: number;
   total: number;
   average: number;
