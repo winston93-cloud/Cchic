@@ -18,12 +18,7 @@ export default function PersonForm({ onClose }: PersonFormProps) {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [formData, setFormData] = useState({
     name: '',
-    last_name: '',
-    address: '',
-    phone: '',
-    email: '',
     identification: '',
-    department: '',
   });
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -80,12 +75,8 @@ export default function PersonForm({ onClose }: PersonFormProps) {
 
   const filteredPersons = persons.filter(person => {
     if (!searchQuery.trim()) return false;
-    const fullName = `${person.name} ${person.last_name || ''}`.toLowerCase().trim();
     const search = searchQuery.toLowerCase().trim();
-    return fullName.includes(search) || 
-           person.name?.toLowerCase().includes(search) ||
-           person.last_name?.toLowerCase().includes(search) ||
-           person.email?.toLowerCase().includes(search) ||
+    return person.name?.toLowerCase().includes(search) ||
            person.identification?.toLowerCase().includes(search);
   });
 
@@ -103,14 +94,9 @@ export default function PersonForm({ onClose }: PersonFormProps) {
     setSelectedPerson(person);
     setFormData({
       name: person.name || '',
-      last_name: person.last_name || '',
-      address: person.address || '',
-      phone: person.phone || '',
-      email: person.email || '',
       identification: person.identification || '',
-      department: person.department || '',
     });
-    setSearchQuery(`${person.name} ${person.last_name || ''}`.trim());
+    setSearchQuery(person.name);
     setShowSuggestions(false);
     
     // TODO: Cargar categorías de la persona si hay relación
@@ -125,12 +111,7 @@ export default function PersonForm({ onClose }: PersonFormProps) {
     setSelectedPerson(null);
     setFormData({
       name: '',
-      last_name: '',
-      address: '',
-      phone: '',
-      email: '',
       identification: '',
-      department: '',
     });
     setSearchQuery('');
     setSelectedCategories([]);
@@ -171,7 +152,7 @@ export default function PersonForm({ onClose }: PersonFormProps) {
       return;
     }
 
-    if (!confirm(`¿Estás seguro de eliminar a ${selectedPerson.name} ${selectedPerson.last_name || ''}?`)) {
+    if (!confirm(`¿Estás seguro de eliminar a ${selectedPerson.name}?`)) {
       return;
     }
 
@@ -306,15 +287,10 @@ export default function PersonForm({ onClose }: PersonFormProps) {
                       whileHover={{ background: 'var(--gray-50)' }}
                     >
                       <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>
-                        {person.name} {person.last_name || ''}
+                        {person.name}
                       </div>
-                      {person.email && (
-                        <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: '0.25rem' }}>
-                          📧 {person.email}
-                        </div>
-                      )}
                       {person.identification && (
-                        <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)' }}>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: '0.25rem' }}>
                           🆔 {person.identification}
                         </div>
                       )}
@@ -331,102 +307,31 @@ export default function PersonForm({ onClose }: PersonFormProps) {
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
-          <div className="form-row" style={{ gap: '0.75rem', marginBottom: '0.5rem' }}>
-            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Nombre *</label>
-              <input
-                type="text"
-                name="name"
-                className="form-input"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Nombre"
-                required
-                style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Apellido</label>
-              <input
-                type="text"
-                name="last_name"
-                className="form-input"
-                value={formData.last_name}
-                onChange={handleChange}
-                placeholder="Apellido"
-                style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
-              />
-            </div>
-          </div>
-
           <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Dirección</label>
+            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Nombre *</label>
             <input
               type="text"
-              name="address"
+              name="name"
               className="form-input"
-              value={formData.address}
+              value={formData.name}
               onChange={handleChange}
-              placeholder="Dirección completa"
+              placeholder="Nombre completo"
+              required
               style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
             />
           </div>
 
-          <div className="form-row" style={{ gap: '0.75rem', marginBottom: '0.5rem' }}>
-            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Teléfono</label>
-              <input
-                type="tel"
-                name="phone"
-                className="form-input"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="Teléfono"
-                style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Correo</label>
-              <input
-                type="email"
-                name="email"
-                className="form-input"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="correo@ejemplo.com"
-                style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
-              />
-            </div>
-          </div>
-
-          <div className="form-row" style={{ gap: '0.75rem', marginBottom: '0.5rem' }}>
-            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Identificación</label>
-              <input
-                type="text"
-                name="identification"
-                className="form-input"
-                value={formData.identification}
-                onChange={handleChange}
-                placeholder="ID"
-                style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Departamento</label>
-              <input
-                type="text"
-                name="department"
-                className="form-input"
-                value={formData.department}
-                onChange={handleChange}
-                placeholder="Depto"
-                style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
-              />
-            </div>
+          <div className="form-group" style={{ marginBottom: '0.5rem' }}>
+            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Identificación</label>
+            <input
+              type="text"
+              name="identification"
+              className="form-input"
+              value={formData.identification}
+              onChange={handleChange}
+              placeholder="Número de identificación"
+              style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
+            />
           </div>
 
           <div className="form-group" style={{ marginBottom: '0.5rem' }}>
