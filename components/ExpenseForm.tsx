@@ -182,7 +182,7 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
             />
           </div>
 
-          <div className="modal-footer" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem', paddingTop: '1.5rem', borderTop: '2px solid var(--gray-200)' }}>
+          <div className="modal-footer" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid var(--gray-200)' }}>
             <motion.button 
               type="button" 
               className="btn btn-outline" 
