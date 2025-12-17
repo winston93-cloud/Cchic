@@ -26,6 +26,9 @@ export default function Home() {
   const [showReports, setShowReports] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    new Date().toISOString().substring(0, 7) // YYYY-MM (mes actual por defecto)
+  );
   
   // Estados para menús desplegables
   const [showRegistrosMenu, setShowRegistrosMenu] = useState(false);
@@ -38,7 +41,7 @@ export default function Home() {
   useEffect(() => {
     fetchExpenses();
     fetchBalance();
-  }, []);
+  }, [selectedMonth]);
 
   // Cerrar menús al hacer clic fuera
   useEffect(() => {
@@ -62,6 +65,12 @@ export default function Home() {
 
   const fetchExpenses = async () => {
     try {
+      // Calcular rango de fechas del mes seleccionado
+      const [year, month] = selectedMonth.split('-');
+      const startDate = `${year}-${month}-01`;
+      const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+      const endDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
+
       const { data, error } = await supabase
         .from('expenses')
         .select(`
@@ -69,6 +78,8 @@ export default function Home() {
           categories (name, icon, color)
         `)
         .eq('status', 'active')
+        .gte('date', startDate)
+        .lte('date', endDate)
         .order('date', { ascending: false });
 
       if (error) throw error;
@@ -344,9 +355,9 @@ export default function Home() {
               </AnimatePresence>
             </div>
 
-            {/* Botón directo Nuevo Egreso */}
+            {/* Botón directo Nuevo Egreso - ROJO */}
             <motion.button
-              className="btn btn-success"
+              className="btn btn-danger"
               onClick={handleNewExpense}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -354,9 +365,9 @@ export default function Home() {
               <span>➕</span> Nuevo Egreso
             </motion.button>
 
-            {/* Botón Reposición de Fondos */}
+            {/* Botón Reposición de Fondos - VERDE */}
             <motion.button
-              className="btn btn-glass"
+              className="btn btn-success"
               onClick={() => {
                 setShowFundForm(true);
                 setShowRegistrosMenu(false);
@@ -408,6 +419,58 @@ export default function Home() {
                     {expenses.length}
                   </div>
                 </motion.div>
+              </motion.div>
+
+              {/* Filtro por mes */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                style={{
+                  marginTop: '1.5rem',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  padding: '1rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                <label style={{ 
+                  fontSize: '1rem', 
+                  fontWeight: 600, 
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  📅 Filtrar por mes:
+                </label>
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  style={{
+                    padding: '0.7rem 1rem',
+                    fontSize: '1rem',
+                    borderRadius: '8px',
+                    border: '2px solid rgba(255, 255, 255, 0.2)',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontWeight: 600
+                  }}
+                />
+                <div style={{
+                  marginLeft: 'auto',
+                  fontSize: '0.9rem',
+                  color: 'rgba(255, 255, 255, 0.7)'
+                }}>
+                  {expenses.length} registro(s) encontrado(s)
+                </div>
               </motion.div>
 
               {loading ? (
