@@ -20,6 +20,32 @@ export default function PersonForm({ onClose }: PersonFormProps) {
     name: '',
     identification: '',
   });
+
+  // Generar identificación automáticamente
+  useEffect(() => {
+    if (formData.name && selectedCategories.length > 0) {
+      const nameInitials = formData.name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .join('')
+        .substring(0, 3);
+      
+      const categoryId = selectedCategories[0];
+      const timestamp = Date.now().toString().slice(-4);
+      
+      const autoId = `${nameInitials}-${categoryId}-${timestamp}`;
+      setFormData(prev => ({ ...prev, identification: autoId }));
+    } else if (formData.name) {
+      const nameInitials = formData.name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .join('')
+        .substring(0, 3);
+      const timestamp = Date.now().toString().slice(-4);
+      const autoId = `${nameInitials}-${timestamp}`;
+      setFormData(prev => ({ ...prev, identification: autoId }));
+    }
+  }, [formData.name, selectedCategories]);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -173,34 +199,6 @@ export default function PersonForm({ onClose }: PersonFormProps) {
     }
   };
 
-  const handleAddCategory = () => {
-    const categoryInput = document.getElementById('new-category') as HTMLInputElement;
-    if (categoryInput && categoryInput.value.trim()) {
-      createCategory(categoryInput.value.trim());
-      categoryInput.value = '';
-    }
-  };
-
-  const createCategory = async (categoryName: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .insert([{ name: categoryName }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      fetchCategories();
-      
-      if (data) {
-        setSelectedCategories(prev => [...prev, data.id]);
-      }
-    } catch (error) {
-      console.error('Error al crear categoría:', error);
-      alert('Error al crear la categoría');
-    }
-  };
 
   const handleRemoveCategory = (categoryId: number) => {
     setSelectedCategories(prev => prev.filter(id => id !== categoryId));
@@ -322,15 +320,21 @@ export default function PersonForm({ onClose }: PersonFormProps) {
           </div>
 
           <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Identificación</label>
+            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Identificación (Automático)</label>
             <input
               type="text"
               name="identification"
               className="form-input"
               value={formData.identification}
-              onChange={handleChange}
-              placeholder="Número de identificación"
-              style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
+              readOnly
+              placeholder="Se generará automáticamente"
+              style={{ 
+                padding: '0.7rem 0.9rem', 
+                fontSize: '0.9rem',
+                background: 'var(--gray-100)',
+                color: 'var(--gray-700)',
+                cursor: 'not-allowed'
+              }}
             />
           </div>
 
@@ -348,7 +352,7 @@ export default function PersonForm({ onClose }: PersonFormProps) {
                   e.target.value = '';
                 }}
               >
-                <option value="">Seleccionar categoría</option>
+                <option value="">Seleccionar categoría existente</option>
                 {categories
                   .filter(cat => !selectedCategories.includes(cat.id))
                   .map(cat => (
@@ -357,20 +361,10 @@ export default function PersonForm({ onClose }: PersonFormProps) {
                     </option>
                   ))}
               </select>
-              <motion.button
-                type="button"
-                className="btn btn-success"
-                onClick={handleAddCategory}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                style={{ padding: '0.7rem 1rem', minWidth: '48px' }}
-              >
-                ➕
-              </motion.button>
             </div>
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', minHeight: '45px', padding: '0.4rem', border: '1px solid var(--gray-300)', borderRadius: '8px', background: 'var(--gray-50)' }}>
               {selectedCategories.length === 0 ? (
-                <span style={{ color: 'var(--gray-500)', fontSize: '0.8rem', alignSelf: 'center' }}>Sin categorías</span>
+                <span style={{ color: 'var(--gray-500)', fontSize: '0.8rem', alignSelf: 'center' }}>Sin categorías seleccionadas</span>
               ) : (
                 selectedCategories.map(catId => {
                   const category = categories.find(c => c.id === catId);
@@ -413,21 +407,6 @@ export default function PersonForm({ onClose }: PersonFormProps) {
                   ) : null;
                 })
               )}
-            </div>
-            <div style={{ marginTop: '0.4rem', display: 'flex', gap: '0.5rem' }}>
-              <input
-                id="new-category"
-                type="text"
-                className="form-input"
-                placeholder="Nueva categoría"
-                style={{ flex: 1, padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddCategory();
-                  }
-                }}
-              />
             </div>
           </div>
 
