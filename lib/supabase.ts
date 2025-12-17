@@ -1,48 +1,24 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
 
-// Crear cliente de Supabase
-let supabaseInstance: SupabaseClient | null = null;
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase environment variables');
+  console.error('URL:', supabaseUrl ? '✓' : '✗');
+  console.error('KEY:', supabaseKey ? '✓' : '✗');
+}
 
-const getSupabaseClient = (): SupabaseClient => {
-  // Si ya existe, retornarlo
-  if (supabaseInstance) {
-    return supabaseInstance;
-  }
-
-  // Validar que tengamos las variables necesarias
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('Supabase credentials missing');
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  // Crear y guardar la instancia
-  supabaseInstance = createClient(supabaseUrl, supabaseKey, {
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseKey || 'placeholder-key',
+  {
     auth: {
       autoRefreshToken: false,
       persistSession: false
     }
-  });
-
-  return supabaseInstance;
-};
-
-// Exportar función que siempre retorna un cliente válido
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(target, prop) {
-    const client = getSupabaseClient();
-    const value = client[prop as keyof SupabaseClient];
-    
-    // Si es una función, bindearla al cliente
-    if (typeof value === 'function') {
-      return value.bind(client);
-    }
-    
-    return value;
   }
-});
+);
 
 // Tipos para la base de datos
 export interface Database {
