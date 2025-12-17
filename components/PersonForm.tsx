@@ -1,36 +1,61 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Person, Category } from '@/types';
 import { supabase } from '@/lib/supabase';
 
 interface PersonFormProps {
-  person: Person | null;
-  onSave: (person: Partial<Person>) => void;
   onClose: () => void;
 }
 
-export default function PersonForm({ person, onSave, onClose }: PersonFormProps) {
+export default function PersonForm({ onClose }: PersonFormProps) {
+  const [persons, setPersons] = useState<Person[]>([]);
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [formData, setFormData] = useState({
-    name: person?.name || '',
-    last_name: person?.last_name || '',
-    address: person?.address || '',
-    phone: person?.phone || '',
-    email: person?.email || '',
-    identification: person?.identification || '',
-    department: person?.department || '',
+    name: '',
+    last_name: '',
+    address: '',
+    phone: '',
+    email: '',
+    identification: '',
+    department: '',
   });
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    fetchPersons();
     fetchCategories();
-    if (person?.id) {
-      // Si es edición, cargar categorías de la persona
-      fetchPersonCategories();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const fetchPersons = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('persons')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setPersons(data || []);
+    } catch (error) {
+      console.error('Error al cargar personas:', error);
     }
-  }, [person]);
+  };
 
   const fetchCategories = async () => {
     try {
@@ -46,8 +71,34 @@ export default function PersonForm({ person, onSave, onClose }: PersonFormProps)
     }
   };
 
-  const fetchPersonCategories = async () => {
-    // TODO: Implementar si hay tabla de relación persona-categoría
+  const filteredPersons = persons.filter(person => {
+    const fullName = `${person.name} ${person.last_name || ''}`.toLowerCase();
+    const search = searchQuery.toLowerCase();
+    return fullName.includes(search) || 
+           person.email?.toLowerCase().includes(search) ||
+           person.identification?.toLowerCase().includes(search);
+  });
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setShowSuggestions(value.length > 0);
+  };
+
+  const handleSelectPerson = (person: Person) => {
+    setSelectedPerson(person);
+    setFormData({
+      name: person.name || '',
+      last_name: person.last_name || '',
+      address: person.address || '',
+      phone: person.phone || '',
+      email: person.email || '',
+      identification: person.identification || '',
+      department: person.department || '',
+    });
+    setSearchQuery(`${person.name} ${person.last_name || ''}`.trim());
+    setShowSuggestions(false);
+    
+    // TODO: Cargar categorías de la persona si hay relación
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -55,10 +106,80 @@ export default function PersonForm({ person, onSave, onClose }: PersonFormProps)
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleNewRecord = () => {
+    setSelectedPerson(null);
+    setFormData({
+      name: '',
+      last_name: '',
+      address: '',
+      phone: '',
+      email: '',
+      identification: '',
+      department: '',
+    });
+    setSearchQuery('');
+    setSelectedCategories([]);
+  };
+
+  const handleSave = async () => {
+    try {
+      if (selectedPerson) {
+        // Actualizar
+        const { error } = await supabase
+          .from('persons')
+          .update(formData as any)
+          .eq('id', selectedPerson.id);
+
+        if (error) throw error;
+        alert('Persona actualizada exitosamente');
+      } else {
+        // Crear nuevo
+        const { error } = await supabase
+          .from('persons')
+          .insert([{ ...formData, active: true } as any]);
+
+        if (error) throw error;
+        alert('Persona creada exitosamente');
+      }
+
+      fetchPersons();
+      handleNewRecord();
+    } catch (error) {
+      console.error('Error al guardar persona:', error);
+      alert('Error al guardar la persona');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedPerson) {
+      alert('Selecciona una persona para eliminar');
+      return;
+    }
+
+    if (!confirm(`¿Estás seguro de eliminar a ${selectedPerson.name} ${selectedPerson.last_name || ''}?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('persons')
+        .update({ active: false })
+        .eq('id', selectedPerson.id);
+
+      if (error) throw error;
+
+      alert('Persona eliminada exitosamente');
+      fetchPersons();
+      handleNewRecord();
+    } catch (error) {
+      console.error('Error al eliminar persona:', error);
+      alert('Error al eliminar la persona');
+    }
+  };
+
   const handleAddCategory = () => {
     const categoryInput = document.getElementById('new-category') as HTMLInputElement;
     if (categoryInput && categoryInput.value.trim()) {
-      // Crear nueva categoría
       createCategory(categoryInput.value.trim());
       categoryInput.value = '';
     }
@@ -74,10 +195,8 @@ export default function PersonForm({ person, onSave, onClose }: PersonFormProps)
 
       if (error) throw error;
       
-      // Recargar categorías
       fetchCategories();
       
-      // Agregar a seleccionadas
       if (data) {
         setSelectedCategories(prev => [...prev, data.id]);
       }
@@ -89,24 +208,6 @@ export default function PersonForm({ person, onSave, onClose }: PersonFormProps)
 
   const handleRemoveCategory = (categoryId: number) => {
     setSelectedCategories(prev => prev.filter(id => id !== categoryId));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData);
-  };
-
-  const handleClear = () => {
-    setFormData({
-      name: '',
-      last_name: '',
-      address: '',
-      phone: '',
-      email: '',
-      identification: '',
-      department: '',
-    });
-    setSelectedCategories([]);
   };
 
   return (
@@ -124,12 +225,10 @@ export default function PersonForm({ person, onSave, onClose }: PersonFormProps)
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 50 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        style={{ maxWidth: '600px' }}
+        style={{ maxWidth: '700px' }}
       >
         <div className="modal-header">
-          <h2 className="modal-title">
-            {person ? '✏️ Modificar Persona' : '➕ Nuevo Registro'}
-          </h2>
+          <h2 className="modal-title">👤 Persona</h2>
           <motion.button 
             className="modal-close" 
             onClick={onClose}
@@ -140,7 +239,72 @@ export default function PersonForm({ person, onSave, onClose }: PersonFormProps)
           </motion.button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        {/* Búsqueda Autocompletada */}
+        <div className="form-group" ref={searchRef} style={{ position: 'relative' }}>
+          <label className="form-label">🔍 Buscar Persona</label>
+          <input
+            type="text"
+            className="form-input"
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onFocus={() => setShowSuggestions(searchQuery.length > 0)}
+            placeholder="Escribe nombre, email o identificación..."
+            style={{ width: '100%' }}
+          />
+          <AnimatePresence>
+            {showSuggestions && filteredPersons.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  background: 'white',
+                  border: '1px solid var(--gray-300)',
+                  borderRadius: '12px',
+                  boxShadow: 'var(--shadow-lg)',
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                  zIndex: 1000,
+                  marginTop: '0.5rem'
+                }}
+              >
+                {filteredPersons.map((person) => (
+                  <motion.div
+                    key={person.id}
+                    onClick={() => handleSelectPerson(person)}
+                    style={{
+                      padding: '1rem',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid var(--gray-200)',
+                      transition: 'background 0.2s'
+                    }}
+                    whileHover={{ background: 'var(--gray-50)' }}
+                  >
+                    <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>
+                      {person.name} {person.last_name || ''}
+                    </div>
+                    {person.email && (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: '0.25rem' }}>
+                        📧 {person.email}
+                      </div>
+                    )}
+                    {person.identification && (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)' }}>
+                        🆔 {person.identification}
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Nombre *</label>
@@ -327,37 +491,51 @@ export default function PersonForm({ person, onSave, onClose }: PersonFormProps)
             </div>
           </div>
 
-          <div className="modal-footer" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid var(--gray-200)' }}>
-            <motion.button 
-              type="button" 
-              className="btn btn-outline" 
-              onClick={handleClear}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              🧹 Limpiar
-            </motion.button>
-            <motion.button 
-              type="button" 
-              className="btn btn-outline" 
-              onClick={onClose}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Cancelar
-            </motion.button>
-            <motion.button 
-              type="submit" 
-              className="btn btn-success"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              ✅ Guardar
-            </motion.button>
+          <div className="modal-footer" style={{ display: 'flex', gap: '1rem', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid var(--gray-200)' }}>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <motion.button 
+                type="button" 
+                className="btn btn-outline" 
+                onClick={handleNewRecord}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                ➕ Nuevo Registro
+              </motion.button>
+              {selectedPerson && (
+                <motion.button 
+                  type="button" 
+                  className="btn btn-danger" 
+                  onClick={handleDelete}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  🗑️ Eliminar
+                </motion.button>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <motion.button 
+                type="button" 
+                className="btn btn-outline" 
+                onClick={onClose}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Cancelar
+              </motion.button>
+              <motion.button 
+                type="submit" 
+                className="btn btn-success"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                ✅ {selectedPerson ? 'Actualizar' : 'Guardar'}
+              </motion.button>
+            </div>
           </div>
         </form>
       </motion.div>
     </motion.div>
   );
 }
-
