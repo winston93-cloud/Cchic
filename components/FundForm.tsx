@@ -126,6 +126,11 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
       notes: fund.notes || '',
     });
     const personName = (fund as any).persons?.name || '';
+    const personData = (fund as any).persons;
+    if (personData) {
+      setSelectedPerson(personData);
+      setPersonSearchQuery(personData.name);
+    }
     setSearchQuery(`${personName} - $${fund.amount} - ${fund.date}`);
     setShowSuggestions(false);
   };
@@ -469,6 +474,76 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
                   </motion.div>
                 )}
               </AnimatePresence>
+              
+              {/* Indicador de persona asignada */}
+              {selectedPerson && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  style={{
+                    marginTop: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 6px rgba(102, 126, 234, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ 
+                      width: '40px', 
+                      height: '40px', 
+                      borderRadius: '50%', 
+                      background: 'rgba(255,255,255,0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.5rem'
+                    }}>
+                      👤
+                    </div>
+                    <div>
+                      <div style={{ color: 'white', fontWeight: 600, fontSize: '1rem' }}>
+                        {selectedPerson.name}
+                      </div>
+                      {selectedPerson.identification && (
+                        <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                          🆔 {selectedPerson.identification}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <motion.button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPerson(null);
+                      setPersonSearchQuery('');
+                      setFormData(prev => ({ ...prev, person_id: '' }));
+                    }}
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                    style={{
+                      background: 'rgba(255,255,255,0.2)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '32px',
+                      height: '32px',
+                      color: 'white',
+                      fontSize: '1.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    ×
+                  </motion.button>
+                </motion.div>
+              )}
             </div>
 
             <div className="form-group" style={{ marginBottom: '0.5rem' }}>
