@@ -54,6 +54,24 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Generar # Comprobante automáticamente
+  useEffect(() => {
+    // Solo generar para nuevos registros (no ediciones)
+    if (!selectedFund && selectedPerson && formData.date) {
+      const personInitials = selectedPerson.name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .join('')
+        .substring(0, 3);
+      
+      const dateFormatted = formData.date.replace(/-/g, ''); // YYYYMMDD
+      const timestamp = Date.now().toString().slice(-4);
+      
+      const voucherNumber = `RF-${personInitials}-${dateFormatted}-${timestamp}`;
+      setFormData(prev => ({ ...prev, voucher_number: voucherNumber }));
+    }
+  }, [selectedPerson, formData.date, selectedFund]);
+
   const fetchFunds = async () => {
     try {
       const { data, error } = await supabase
@@ -547,15 +565,24 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
             </div>
 
             <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}># Comprobante</label>
+              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>
+                # Comprobante {!selectedFund && <span style={{ color: 'var(--gray-500)', fontSize: '0.8rem' }}>(generado automáticamente)</span>}
+              </label>
               <input
                 type="text"
                 name="voucher_number"
                 className="form-input"
                 value={formData.voucher_number}
                 onChange={handleChange}
-                placeholder="Número de comprobante"
-                style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
+                placeholder="Se generará automáticamente"
+                readOnly={!selectedFund}
+                style={{ 
+                  padding: '0.7rem 0.9rem', 
+                  fontSize: '0.9rem',
+                  background: !selectedFund ? 'var(--gray-50)' : 'white',
+                  cursor: !selectedFund ? 'not-allowed' : 'text',
+                  opacity: !selectedFund ? 0.7 : 1
+                }}
               />
             </div>
 
