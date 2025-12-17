@@ -8,6 +8,7 @@ import ReportsPanel from '@/components/ReportsPanel';
 import PersonForm from '@/components/PersonForm';
 import CategoryForm from '@/components/CategoryForm';
 import FundForm from '@/components/FundForm';
+import DeleteExpensesForm from '@/components/DeleteExpensesForm';
 import { Expense, Balance, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
 
@@ -21,6 +22,7 @@ export default function Home() {
   const [showPersonForm, setShowPersonForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showFundForm, setShowFundForm] = useState(false);
+  const [showDeleteForm, setShowDeleteForm] = useState(false);
   const [showReports, setShowReports] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [loading, setLoading] = useState(true);
@@ -253,7 +255,10 @@ export default function Home() {
                       Modificación de egreso
                     </div>
                     <div className="dropdown-divider"></div>
-                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                    <div className="dropdown-item" onClick={() => {
+                      setShowDeleteForm(true);
+                      setShowRegistrosMenu(false);
+                    }}>
                       <span className="dropdown-item-icon">🗑️</span>
                       Eliminación de registros
                     </div>
@@ -453,6 +458,17 @@ export default function Home() {
               setShowFundForm(false);
             }}
             onUpdate={() => {
+              fetchBalance();
+            }}
+          />
+        )}
+        {showDeleteForm && (
+          <DeleteExpensesForm
+            onClose={() => {
+              setShowDeleteForm(false);
+            }}
+            onUpdate={() => {
+              fetchExpenses();
               fetchBalance();
             }}
           />
