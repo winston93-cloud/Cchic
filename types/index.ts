@@ -53,8 +53,12 @@ export interface Fund {
   id: number;
   date: string;
   amount: number;
+  person_id?: number;
+  voucher_number?: string;
   notes?: string;
+  created_by?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
 export interface Report {

@@ -7,6 +7,7 @@ import ExpenseList from '@/components/ExpenseList';
 import ReportsPanel from '@/components/ReportsPanel';
 import PersonForm from '@/components/PersonForm';
 import CategoryForm from '@/components/CategoryForm';
+import FundForm from '@/components/FundForm';
 import { Expense, Balance, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
 
@@ -19,6 +20,7 @@ export default function Home() {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showPersonForm, setShowPersonForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [showFundForm, setShowFundForm] = useState(false);
   const [showReports, setShowReports] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [loading, setLoading] = useState(true);
@@ -256,13 +258,12 @@ export default function Home() {
                       Eliminación de registros
                     </div>
                     <div className="dropdown-divider"></div>
-                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                    <div className="dropdown-item" onClick={() => {
+                      setShowFundForm(true);
+                      setShowRegistrosMenu(false);
+                    }}>
                       <span className="dropdown-item-icon">💵</span>
                       Reposición de fondos
-                    </div>
-                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
-                      <span className="dropdown-item-icon">📊</span>
-                      Modificación de reposición
                     </div>
                     <div className="dropdown-divider"></div>
                     <div className="dropdown-item" onClick={() => {
@@ -443,6 +444,16 @@ export default function Home() {
           <CategoryForm
             onClose={() => {
               setShowCategoryForm(false);
+            }}
+          />
+        )}
+        {showFundForm && (
+          <FundForm
+            onClose={() => {
+              setShowFundForm(false);
+            }}
+            onUpdate={() => {
+              fetchBalance();
             }}
           />
         )}
