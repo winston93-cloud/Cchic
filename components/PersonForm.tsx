@@ -21,6 +21,14 @@ export default function PersonForm({ onClose }: PersonFormProps) {
     identification: '',
   });
 
+  const [notification, setNotification] = useState<string | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const showNotification = (message: string) => {
+    setNotification(message);
+    setTimeout(() => setNotification(null), 2000);
+  };
+
   // Generar identificación automáticamente
   useEffect(() => {
     if (formData.name && selectedCategories.length > 0) {
@@ -46,7 +54,6 @@ export default function PersonForm({ onClose }: PersonFormProps) {
       setFormData(prev => ({ ...prev, identification: autoId }));
     }
   }, [formData.name, selectedCategories]);
-  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchPersons();
