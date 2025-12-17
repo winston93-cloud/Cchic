@@ -481,12 +481,12 @@ export default function Home() {
                       }}
                     >
                       <span>
-                        {new Date(selectedMonth + '-01').toLocaleDateString('es-MX', { 
-                          month: 'long', 
-                          year: 'numeric' 
-                        }).split(' ').map((word, i) => 
-                          i === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word
-                        ).join(' de ')}
+                        {(() => {
+                          const date = new Date(selectedMonth + '-15'); // Usar día 15 para evitar problemas de timezone
+                          const monthName = date.toLocaleDateString('es-MX', { month: 'long' });
+                          const year = date.toLocaleDateString('es-MX', { year: 'numeric' });
+                          return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${year}`;
+                        })()}
                       </span>
                       <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>▼</span>
                     </motion.div>
