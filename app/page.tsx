@@ -6,6 +6,7 @@ import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseList from '@/components/ExpenseList';
 import ReportsPanel from '@/components/ReportsPanel';
 import PersonForm from '@/components/PersonForm';
+import CategoryForm from '@/components/CategoryForm';
 import { Expense, Balance, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
 
@@ -17,6 +18,7 @@ export default function Home() {
   const [balance, setBalance] = useState<Balance>({ totalFunds: 0, totalExpenses: 0, balance: 0 });
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showPersonForm, setShowPersonForm] = useState(false);
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showReports, setShowReports] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [loading, setLoading] = useState(true);
@@ -271,7 +273,10 @@ export default function Home() {
                       Persona
                     </div>
                     <div className="dropdown-divider"></div>
-                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                    <div className="dropdown-item" onClick={() => {
+                      setShowCategoryForm(true);
+                      setShowRegistrosMenu(false);
+                    }}>
                       <span className="dropdown-item-icon">🏷️</span>
                       Categorías
                     </div>
@@ -431,6 +436,13 @@ export default function Home() {
           <PersonForm
             onClose={() => {
               setShowPersonForm(false);
+            }}
+          />
+        )}
+        {showCategoryForm && (
+          <CategoryForm
+            onClose={() => {
+              setShowCategoryForm(false);
             }}
           />
         )}
