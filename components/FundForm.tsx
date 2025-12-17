@@ -16,6 +16,9 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
   const [selectedFund, setSelectedFund] = useState<Fund | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [personSearchQuery, setPersonSearchQuery] = useState('');
+  const [showPersonSuggestions, setShowPersonSuggestions] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     amount: '',
@@ -25,6 +28,7 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
   });
   const [notification, setNotification] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const personSearchRef = useRef<HTMLDivElement>(null);
 
   const showNotification = (message: string) => {
     setNotification(message);
@@ -40,6 +44,9 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
+      }
+      if (personSearchRef.current && !personSearchRef.current.contains(event.target as Node)) {
+        setShowPersonSuggestions(false);
       }
     };
 
@@ -130,6 +137,7 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
 
   const handleNewRecord = () => {
     setSelectedFund(null);
+    setSelectedPerson(null);
     setFormData({
       date: new Date().toISOString().split('T')[0],
       amount: '',
@@ -138,6 +146,26 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
       notes: '',
     });
     setSearchQuery('');
+    setPersonSearchQuery('');
+  };
+
+  const filteredPersons = persons.filter(person => {
+    if (!personSearchQuery.trim()) return true;
+    const search = personSearchQuery.toLowerCase().trim();
+    return person.name?.toLowerCase().includes(search) ||
+           person.identification?.toLowerCase().includes(search);
+  });
+
+  const handlePersonSearchChange = (value: string) => {
+    setPersonSearchQuery(value);
+    setShowPersonSuggestions(value.trim().length > 0);
+  };
+
+  const handleSelectPerson = (person: Person) => {
+    setSelectedPerson(person);
+    setPersonSearchQuery(person.name);
+    setFormData(prev => ({ ...prev, person_id: person.id.toString() }));
+    setShowPersonSuggestions(false);
   };
 
   const handleSave = async () => {
@@ -377,23 +405,70 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
               </div>
             </div>
 
-            <div className="form-group" style={{ marginBottom: '0.5rem' }}>
+            <div className="form-group" ref={personSearchRef} style={{ marginBottom: '0.5rem', position: 'relative' }}>
               <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Persona Asignada *</label>
-              <select
-                name="person_id"
-                className="form-select"
-                value={formData.person_id}
-                onChange={handleChange}
+              <input
+                type="text"
+                className="form-input"
+                value={personSearchQuery}
+                onChange={(e) => handlePersonSearchChange(e.target.value)}
+                onFocus={() => setShowPersonSuggestions(true)}
+                placeholder="Buscar persona..."
                 required
                 style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
-              >
-                <option value="">Seleccionar persona</option>
-                {persons.map(person => (
-                  <option key={person.id} value={person.id}>
-                    {person.name} {person.identification ? `(${person.identification})` : ''}
-                  </option>
-                ))}
-              </select>
+                autoComplete="off"
+              />
+              <AnimatePresence>
+                {showPersonSuggestions && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      border: '1px solid var(--gray-300)',
+                      borderRadius: '12px',
+                      boxShadow: 'var(--shadow-lg)',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      marginTop: '0.5rem'
+                    }}
+                  >
+                    {filteredPersons.length > 0 ? (
+                      filteredPersons.map((person) => (
+                        <motion.div
+                          key={person.id}
+                          onClick={() => handleSelectPerson(person)}
+                          style={{
+                            padding: '0.75rem 1rem',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid var(--gray-200)',
+                          }}
+                          whileHover={{ background: 'var(--gray-50)' }}
+                        >
+                          <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>
+                            {person.name}
+                          </div>
+                          {person.identification && (
+                            <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: '0.25rem' }}>
+                              🆔 {person.identification}
+                            </div>
+                          )}
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div style={{ padding: '1rem', color: 'var(--gray-500)', textAlign: 'center' }}>
+                        No se encontraron personas
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="form-group" style={{ marginBottom: '0.5rem' }}>
