@@ -215,6 +215,7 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
                 min="0"
                 placeholder="0.00"
                 required
+                autoFocus
               />
             </div>
           </div>
