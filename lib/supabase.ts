@@ -1,24 +1,48 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || '';
 
-// Crear cliente solo si las variables están disponibles
-// Durante el build, esto retorna un objeto mock
-const createSupabaseClient = () => {
-  if (!supabaseUrl || !supabaseKey) {
-    // Mock client para el build
-    return {} as ReturnType<typeof createClient>;
+// Crear cliente de Supabase
+let supabaseInstance: SupabaseClient | null = null;
+
+const getSupabaseClient = (): SupabaseClient => {
+  // Si ya existe, retornarlo
+  if (supabaseInstance) {
+    return supabaseInstance;
   }
-  return createClient(supabaseUrl, supabaseKey, {
+
+  // Validar que tengamos las variables necesarias
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Supabase credentials missing');
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  // Crear y guardar la instancia
+  supabaseInstance = createClient(supabaseUrl, supabaseKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
     }
   });
+
+  return supabaseInstance;
 };
 
-export const supabase = createSupabaseClient();
+// Exportar función que siempre retorna un cliente válido
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(target, prop) {
+    const client = getSupabaseClient();
+    const value = client[prop as keyof SupabaseClient];
+    
+    // Si es una función, bindearla al cliente
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+    
+    return value;
+  }
+});
 
 // Tipos para la base de datos
 export interface Database {
