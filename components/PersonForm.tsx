@@ -48,12 +48,19 @@ export default function PersonForm({ onClose }: PersonFormProps) {
       const { data, error } = await supabase
         .from('persons')
         .select('*')
+        .eq('active', true)
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error de Supabase:', error);
+        throw error;
+      }
+      
+      console.log('Personas cargadas:', data);
       setPersons(data || []);
     } catch (error) {
       console.error('Error al cargar personas:', error);
+      alert('Error al cargar personas. Verifica la consola para más detalles.');
     }
   };
 
