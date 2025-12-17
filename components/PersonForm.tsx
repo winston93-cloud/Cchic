@@ -123,7 +123,7 @@ export default function PersonForm({ onClose }: PersonFormProps) {
     }
   };
 
-  const handleSelectPerson = (person: Person) => {
+  const handleSelectPerson = async (person: Person) => {
     setSelectedPerson(person);
     setFormData({
       name: person.name || '',
@@ -132,7 +132,20 @@ export default function PersonForm({ onClose }: PersonFormProps) {
     setSearchQuery(person.name);
     setShowSuggestions(false);
     
-    // TODO: Cargar categorías de la persona si hay relación
+    // Cargar categorías de la persona
+    try {
+      const { data, error } = await supabase
+        .from('person_categories')
+        .select('category_id')
+        .eq('person_id', person.id);
+
+      if (error) throw error;
+      
+      const categoryIds = data?.map(pc => pc.category_id) || [];
+      setSelectedCategories(categoryIds);
+    } catch (error) {
+      console.error('Error al cargar categorías de la persona:', error);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
