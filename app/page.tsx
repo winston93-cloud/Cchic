@@ -349,17 +349,17 @@ export default function Home() {
               <span>➕</span> Nuevo Egreso
             </motion.button>
 
-            {/* Botón Actualizar */}
+            {/* Botón Reposición de Fondos */}
             <motion.button
               className="btn btn-glass"
               onClick={() => {
-                fetchExpenses();
-                fetchBalance();
+                setShowFundForm(true);
+                setShowRegistrosMenu(false);
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span>🔄</span> Actualizar
+              <span>💵</span> Reposición de Fondos
             </motion.button>
           </div>
 

@@ -320,82 +320,6 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
             </motion.button>
           </div>
 
-          {/* Búsqueda Autocompletada */}
-          <div className="form-group" ref={searchRef} style={{ position: 'relative', marginBottom: '0.75rem' }}>
-            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.4rem' }}>🔍 Buscar Reposición</label>
-            <input
-              type="text"
-              className="form-input"
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              onFocus={() => {
-                if (searchQuery.trim().length > 0) {
-                  setShowSuggestions(true);
-                }
-              }}
-              placeholder="Buscar por persona, monto, fecha..."
-              style={{ width: '100%', padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
-              autoComplete="off"
-            />
-            <AnimatePresence>
-              {showSuggestions && searchQuery.trim().length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    right: 0,
-                    background: 'white',
-                    border: '1px solid var(--gray-300)',
-                    borderRadius: '12px',
-                    boxShadow: 'var(--shadow-lg)',
-                    maxHeight: '250px',
-                    overflowY: 'auto',
-                    zIndex: 1000,
-                    marginTop: '0.5rem'
-                  }}
-                >
-                  {filteredFunds.length > 0 ? (
-                    filteredFunds.map((fund) => (
-                      <motion.div
-                        key={fund.id}
-                        onClick={() => handleSelectFund(fund)}
-                        style={{
-                          padding: '0.75rem 1rem',
-                          cursor: 'pointer',
-                          borderBottom: '1px solid var(--gray-200)',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}
-                        whileHover={{ background: 'var(--gray-50)' }}
-                      >
-                        <div>
-                          <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>
-                            {(fund as any).persons?.name || 'Sin asignar'}
-                          </div>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: '0.25rem' }}>
-                            📅 {fund.date}
-                          </div>
-                        </div>
-                        <div style={{ fontWeight: 600, color: '#10B981', fontSize: '1.1rem' }}>
-                          ${fund.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                        </div>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div style={{ padding: '1rem', color: 'var(--gray-500)', textAlign: 'center' }}>
-                      No se encontraron resultados
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
             <div className="form-row" style={{ gap: '0.75rem', marginBottom: '0.5rem' }}>
               <div className="form-group" style={{ marginBottom: '0.5rem', flex: 1 }}>
@@ -597,6 +521,84 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
                 rows={3}
                 style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem', resize: 'vertical' }}
               />
+            </div>
+
+            <div style={{ borderTop: '2px solid var(--gray-200)', marginTop: '0.75rem', paddingTop: '0.75rem' }}></div>
+
+            {/* Búsqueda de Reposiciones existentes */}
+            <div className="form-group" ref={searchRef} style={{ position: 'relative', marginBottom: '0.75rem' }}>
+              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.4rem' }}>🔍 Buscar Reposición Existente</label>
+              <input
+                type="text"
+                className="form-input"
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onFocus={() => {
+                  if (searchQuery.trim().length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                placeholder="Buscar por persona, monto, fecha..."
+                style={{ width: '100%', padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
+                autoComplete="off"
+              />
+              <AnimatePresence>
+                {showSuggestions && searchQuery.trim().length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      border: '1px solid var(--gray-300)',
+                      borderRadius: '12px',
+                      boxShadow: 'var(--shadow-lg)',
+                      maxHeight: '250px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      marginBottom: '0.5rem'
+                    }}
+                  >
+                    {filteredFunds.length > 0 ? (
+                      filteredFunds.map((fund) => (
+                        <motion.div
+                          key={fund.id}
+                          onClick={() => handleSelectFund(fund)}
+                          style={{
+                            padding: '0.75rem 1rem',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid var(--gray-200)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}
+                          whileHover={{ background: 'var(--gray-50)' }}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>
+                              {(fund as any).persons?.name || 'Sin asignar'}
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: '0.25rem' }}>
+                              📅 {fund.date}
+                            </div>
+                          </div>
+                          <div style={{ fontWeight: 600, color: '#10B981', fontSize: '1.1rem' }}>
+                            ${fund.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                          </div>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div style={{ padding: '1rem', color: 'var(--gray-500)', textAlign: 'center' }}>
+                        No se encontraron resultados
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="modal-footer" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '2px solid var(--gray-200)' }}>
