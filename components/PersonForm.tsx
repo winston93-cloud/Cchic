@@ -165,6 +165,8 @@ export default function PersonForm({ onClose }: PersonFormProps) {
 
   const handleSave = async () => {
     try {
+      let personId: number;
+
       if (selectedPerson) {
         // Actualizar
         const { error } = await supabase
@@ -173,15 +175,42 @@ export default function PersonForm({ onClose }: PersonFormProps) {
           .eq('id', selectedPerson.id);
 
         if (error) throw error;
+        personId = selectedPerson.id;
         showNotification('✅ Persona actualizada exitosamente');
       } else {
         // Crear nuevo
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('persons')
-          .insert([{ ...formData, active: true } as any]);
+          .insert([{ ...formData, active: true } as any])
+          .select()
+          .single();
 
         if (error) throw error;
+        if (!data) throw new Error('No se pudo crear la persona');
+        
+        personId = data.id;
         showNotification('✅ Persona creada exitosamente');
+      }
+
+      // Guardar categorías
+      if (selectedCategories.length > 0) {
+        // Eliminar categorías anteriores
+        await supabase
+          .from('person_categories')
+          .delete()
+          .eq('person_id', personId);
+
+        // Insertar nuevas categorías
+        const categoryInserts = selectedCategories.map(catId => ({
+          person_id: personId,
+          category_id: catId
+        }));
+
+        const { error: catError } = await supabase
+          .from('person_categories')
+          .insert(categoryInserts);
+
+        if (catError) throw catError;
       }
 
       fetchPersons();
