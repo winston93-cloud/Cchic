@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Expense, Category } from '@/types';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Expense, Category, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
 
 interface ExpenseFormProps {
@@ -13,6 +13,13 @@ interface ExpenseFormProps {
 
 export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [persons, setPersons] = useState<Person[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [personSearchQuery, setPersonSearchQuery] = useState('');
+  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
+  const [showPersonSuggestions, setShowPersonSuggestions] = useState(false);
   const [formData, setFormData] = useState({
     date: expense?.date || new Date().toISOString().split('T')[0],
     correspondent_to: expense?.correspondent_to || '',
@@ -23,9 +30,49 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
     notes: expense?.notes || '',
   });
 
+  const categorySearchRef = useRef<HTMLDivElement>(null);
+  const personSearchRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     fetchCategories();
+    fetchPersons();
+    
+    // Si estamos editando, cargar la categoría y persona seleccionada
+    if (expense) {
+      if (expense.category_id) {
+        const cat = categories.find(c => c.id === expense.category_id);
+        if (cat) {
+          setSelectedCategory(cat);
+          setCategorySearchQuery(cat.name);
+        }
+      }
+      if (expense.correspondent_to) {
+        setPersonSearchQuery(expense.correspondent_to);
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categorySearchRef.current && !categorySearchRef.current.contains(event.target as Node)) {
+        setShowCategorySuggestions(false);
+      }
+      if (personSearchRef.current && !personSearchRef.current.contains(event.target as Node)) {
+        setShowPersonSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Generar # Comprobante automáticamente (5 dígitos numéricos)
+  useEffect(() => {
+    if (!expense && !formData.voucher_number) {
+      const randomNumber = Math.floor(10000 + Math.random() * 90000); // 10000-99999
+      setFormData(prev => ({ ...prev, voucher_number: randomNumber.toString() }));
+    }
+  }, [expense]);
 
   const fetchCategories = async () => {
     try {
@@ -39,6 +86,63 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
     } catch (error) {
       console.error('Error al cargar categorías:', error);
     }
+  };
+
+  const fetchPersons = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('persons')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+
+      if (error) throw error;
+      setPersons(data || []);
+    } catch (error) {
+      console.error('Error al cargar personas:', error);
+    }
+  };
+
+  const filteredCategories = categories.filter(cat => {
+    if (!categorySearchQuery.trim()) return true;
+    const search = categorySearchQuery.toLowerCase().trim();
+    return cat.name?.toLowerCase().includes(search);
+  });
+
+  const filteredPersons = persons.filter(person => {
+    if (!personSearchQuery.trim()) return true;
+    const search = personSearchQuery.toLowerCase().trim();
+    return person.name?.toLowerCase().includes(search) ||
+           person.identification?.toLowerCase().includes(search);
+  });
+
+  const handleCategorySearchChange = (value: string) => {
+    setCategorySearchQuery(value);
+    setShowCategorySuggestions(value.trim().length > 0);
+    if (value.trim().length === 0) {
+      setSelectedCategory(null);
+      setFormData(prev => ({ ...prev, category_id: '' }));
+    }
+  };
+
+  const handlePersonSearchChange = (value: string) => {
+    setPersonSearchQuery(value);
+    setShowPersonSuggestions(value.trim().length > 0);
+    setFormData(prev => ({ ...prev, correspondent_to: value }));
+  };
+
+  const handleSelectCategory = (category: Category) => {
+    setSelectedCategory(category);
+    setCategorySearchQuery(category.name);
+    setFormData(prev => ({ ...prev, category_id: category.id.toString() }));
+    setShowCategorySuggestions(false);
+  };
+
+  const handleSelectPerson = (person: Person) => {
+    setSelectedPerson(person);
+    setPersonSearchQuery(person.name);
+    setFormData(prev => ({ ...prev, correspondent_to: person.name }));
+    setShowPersonSuggestions(false);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -115,16 +219,69 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
             </div>
           </div>
 
-          <div className="form-group">
+          {/* Corresponde a - Búsqueda autocompletada de personas */}
+          <div className="form-group" ref={personSearchRef} style={{ position: 'relative' }}>
             <label className="form-label">📧 Corresponde a</label>
             <input
               type="text"
-              name="correspondent_to"
               className="form-input"
-              value={formData.correspondent_to}
-              onChange={handleChange}
-              placeholder="Persona o departamento"
+              value={personSearchQuery}
+              onChange={(e) => handlePersonSearchChange(e.target.value)}
+              onFocus={() => setShowPersonSuggestions(true)}
+              placeholder="Buscar persona..."
+              autoComplete="off"
             />
+            <AnimatePresence>
+              {showPersonSuggestions && personSearchQuery.trim().length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    background: 'white',
+                    border: '1px solid var(--gray-300)',
+                    borderRadius: '12px',
+                    boxShadow: 'var(--shadow-lg)',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                    marginTop: '0.5rem'
+                  }}
+                >
+                  {filteredPersons.length > 0 ? (
+                    filteredPersons.map((person) => (
+                      <motion.div
+                        key={person.id}
+                        onClick={() => handleSelectPerson(person)}
+                        style={{
+                          padding: '0.75rem 1rem',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid var(--gray-200)',
+                        }}
+                        whileHover={{ background: 'var(--gray-50)' }}
+                      >
+                        <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>
+                          {person.name}
+                        </div>
+                        {person.identification && (
+                          <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: '0.25rem' }}>
+                            🆔 {person.identification}
+                          </div>
+                        )}
+                      </motion.div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '1rem', color: 'var(--gray-500)', textAlign: 'center' }}>
+                      No se encontraron personas
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="form-row">
@@ -141,33 +298,163 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
               />
             </div>
 
-            <div className="form-group">
+            {/* Categoría - Búsqueda autocompletada con iconos y colores */}
+            <div className="form-group" ref={categorySearchRef} style={{ position: 'relative' }}>
               <label className="form-label">🏷️ Categoría</label>
-              <select
-                name="category_id"
-                className="form-select"
-                value={formData.category_id}
-                onChange={handleChange}
-              >
-                <option value="">Seleccionar categoría</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.icon} {cat.name}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                className="form-input"
+                value={categorySearchQuery}
+                onChange={(e) => handleCategorySearchChange(e.target.value)}
+                onFocus={() => setShowCategorySuggestions(true)}
+                placeholder="Buscar categoría..."
+                autoComplete="off"
+              />
+              <AnimatePresence>
+                {showCategorySuggestions && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      border: '1px solid var(--gray-300)',
+                      borderRadius: '12px',
+                      boxShadow: 'var(--shadow-lg)',
+                      maxHeight: '250px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      marginTop: '0.5rem'
+                    }}
+                  >
+                    {filteredCategories.length > 0 ? (
+                      filteredCategories.map((category) => (
+                        <motion.div
+                          key={category.id}
+                          onClick={() => handleSelectCategory(category)}
+                          style={{
+                            padding: '0.75rem 1rem',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid var(--gray-200)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem'
+                          }}
+                          whileHover={{ background: 'var(--gray-50)' }}
+                        >
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            background: category.color || '#4da6ff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1.25rem',
+                            flexShrink: 0
+                          }}>
+                            {category.icon || '📦'}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>
+                              {category.name}
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div style={{ padding: '1rem', color: 'var(--gray-500)', textAlign: 'center' }}>
+                        No se encontraron categorías
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              {/* Indicador de categoría seleccionada */}
+              {selectedCategory && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: '0.5rem 0.75rem',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    color: 'white',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  <div style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: selectedCategory.color || '#4da6ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem'
+                  }}>
+                    {selectedCategory.icon}
+                  </div>
+                  <span style={{ fontWeight: 600 }}>{selectedCategory.name}</span>
+                  <motion.button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedCategory(null);
+                      setCategorySearchQuery('');
+                      setFormData(prev => ({ ...prev, category_id: '' }));
+                    }}
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                    style={{
+                      background: 'rgba(255,255,255,0.2)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '24px',
+                      height: '24px',
+                      color: 'white',
+                      fontSize: '1.25rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginLeft: 'auto'
+                    }}
+                  >
+                    ×
+                  </motion.button>
+                </motion.div>
+              )}
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">🧾 # Comprobante</label>
+            <label className="form-label">
+              🧾 # Comprobante {!expense && <span style={{ color: 'var(--gray-500)', fontSize: '0.8rem' }}>(5 dígitos automáticos)</span>}
+            </label>
             <input
               type="text"
               name="voucher_number"
               className="form-input"
               value={formData.voucher_number}
               onChange={handleChange}
-              placeholder="Número de comprobante"
+              placeholder="Generado automáticamente"
+              readOnly={!expense}
+              style={{
+                background: !expense ? 'var(--gray-50)' : 'white',
+                cursor: !expense ? 'not-allowed' : 'text',
+                opacity: !expense ? 0.7 : 1
+              }}
             />
           </div>
 

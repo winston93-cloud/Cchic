@@ -54,23 +54,14 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Generar # Comprobante automáticamente
+  // Generar # Comprobante automáticamente (5 dígitos numéricos)
   useEffect(() => {
     // Solo generar para nuevos registros (no ediciones)
-    if (!selectedFund && selectedPerson && formData.date) {
-      const personInitials = selectedPerson.name
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase())
-        .join('')
-        .substring(0, 3);
-      
-      const dateFormatted = formData.date.replace(/-/g, ''); // YYYYMMDD
-      const timestamp = Date.now().toString().slice(-4);
-      
-      const voucherNumber = `RF-${personInitials}-${dateFormatted}-${timestamp}`;
-      setFormData(prev => ({ ...prev, voucher_number: voucherNumber }));
+    if (!selectedFund && !formData.voucher_number) {
+      const randomNumber = Math.floor(10000 + Math.random() * 90000); // 10000-99999
+      setFormData(prev => ({ ...prev, voucher_number: randomNumber.toString() }));
     }
-  }, [selectedPerson, formData.date, selectedFund]);
+  }, [selectedFund]);
 
   const fetchFunds = async () => {
     try {
