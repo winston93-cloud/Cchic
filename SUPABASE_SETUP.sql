@@ -70,6 +70,13 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Eliminar triggers si existen antes de crearlos
+DROP TRIGGER IF EXISTS update_categories_updated_at ON categories;
+DROP TRIGGER IF EXISTS update_persons_updated_at ON persons;
+DROP TRIGGER IF EXISTS update_funds_updated_at ON funds;
+DROP TRIGGER IF EXISTS update_expenses_updated_at ON expenses;
+
+-- Crear triggers
 CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON categories
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -101,10 +108,10 @@ INSERT INTO persons (name, last_name, email, department) VALUES
   ('Ana', 'Martínez', 'ana.martinez@example.com', 'Recursos Humanos')
 ON CONFLICT DO NOTHING;
 
--- Fondo inicial
-INSERT INTO funds (date, amount, notes, created_by) VALUES
-  (CURRENT_DATE, 10000.00, 'Fondo inicial del sistema', 'Sistema')
-ON CONFLICT DO NOTHING;
+-- Fondo inicial (solo si no existe)
+INSERT INTO funds (date, amount, notes, created_by) 
+SELECT CURRENT_DATE, 10000.00, 'Fondo inicial del sistema', 'Sistema'
+WHERE NOT EXISTS (SELECT 1 FROM funds WHERE notes = 'Fondo inicial del sistema');
 
 -- Vista para reporte de saldo
 CREATE OR REPLACE VIEW v_balance AS
@@ -171,6 +178,13 @@ ALTER TABLE funds ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 
 -- Políticas RLS (permite todo por ahora, puedes restringir después)
+-- Eliminar políticas si existen antes de crearlas
+DROP POLICY IF EXISTS "Enable all for categories" ON categories;
+DROP POLICY IF EXISTS "Enable all for persons" ON persons;
+DROP POLICY IF EXISTS "Enable all for funds" ON funds;
+DROP POLICY IF EXISTS "Enable all for expenses" ON expenses;
+
+-- Crear políticas
 CREATE POLICY "Enable all for categories" ON categories FOR ALL USING (true);
 CREATE POLICY "Enable all for persons" ON persons FOR ALL USING (true);
 CREATE POLICY "Enable all for funds" ON funds FOR ALL USING (true);
