@@ -9,11 +9,26 @@ interface CategoryFormProps {
   onClose: () => void;
 }
 
-const EMOJI_SUGGESTIONS = [
-  '📦', '🚗', '🍔', '📝', '💡', '🛠️', '📚', '🏥', '⛽', '💰',
-  '👔', '🏠', '📱', '💻', '✈️', '🎓', '🎨', '🎵', '⚽', '🌟',
-  '🔧', '📊', '💼', '🎯', '📌', '🔑', '🎁', '🌐', '📞', '✉️'
-];
+const EMOJI_CATEGORIES = {
+  'Transporte': ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🏍️', '🛵', '🚲', '🛴', '✈️', '🛩️', '🚁', '🚂', '🚆', '🚇', '🚊', '🚝', '🚄', '🚅', '🚈', '🚞', '⛴️', '🚢', '⛵', '🛶', '🚤'],
+  'Comida': ['🍔', '🍕', '🌮', '🌯', '🥙', '🥪', '🌭', '🍿', '🧈', '🥓', '🥚', '🍳', '🥞', '🧇', '🥐', '🍞', '🥖', '🥨', '🧀', '🥗', '🥘', '🍲', '🍝', '🥫', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🌰', '🥜'],
+  'Bebidas': ['☕', '🍵', '🧃', '🥤', '🧋', '🍶', '🍺', '🍻', '🥂', '🍷', '🥃', '🍸', '🍹', '🧉', '🍾'],
+  'Salud': ['🏥', '⚕️', '💊', '💉', '🩹', '🩺', '🩻', '🦷', '🧬', '🔬', '🧪', '🌡️'],
+  'Dinero': ['💰', '💵', '💴', '💶', '💷', '💳', '💸', '🪙', '💹', '📈', '📉', '💱', '💲'],
+  'Oficina': ['📝', '📄', '📃', '📋', '📊', '📈', '📉', '🗒️', '🗓️', '📆', '📅', '📇', '🗃️', '🗄️', '📁', '📂', '🗂️', '📌', '📍', '✂️', '🖇️', '📎', '🖊️', '✏️', '📏', '📐', '🖍️', '🖌️', '📦'],
+  'Tecnología': ['💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '💾', '💿', '📀', '🎮', '📱', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏰', '⏲️', '⌚', '📡', '🔋', '🔌', '💡', '🔦', '🕯️'],
+  'Herramientas': ['🛠️', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '⚙️', '🗜️', '⚖️', '🦯', '🔗', '⛓️', '🧰', '🧲', '⚗️'],
+  'Edificios': ['🏠', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏨', '🏪', '🏫', '🏩', '💒', '🏛️', '⛪', '🕌', '🕍', '⛩️', '🛕'],
+  'Educación': ['📚', '📖', '📕', '📗', '📘', '📙', '📓', '📔', '📒', '📃', '📜', '📄', '🎓', '✏️', '📝', '🖊️', '🖍️', '🖌️', '🖋️'],
+  'Ropa': ['👔', '👕', '👖', '🧥', '🧤', '🧦', '👗', '👘', '🥻', '🥼', '🦺', '👚', '👙', '🩱', '🩲', '🩳', '👒', '🎩', '🎓', '👑', '👟', '👞', '🥾', '🥿', '👠', '👡', '👢', '🩰', '👜', '👝', '🛍️', '🎒', '👓', '🕶️', '🥽'],
+  'Deporte': ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂'],
+  'Naturaleza': ['🌲', '🌳', '🌴', '🌱', '🌿', '☘️', '🍀', '🎋', '🎍', '🍃', '🍂', '🍁', '🍄', '🌾', '💐', '🌷', '🌹', '🥀', '🌺', '🌸', '🌼', '🌻', '🌞', '🌝', '🌛', '🌜', '🌚', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔', '🌙', '🌎', '🌍', '🌏', '⭐', '🌟', '✨', '⚡', '☄️', '💥', '🔥', '🌪️', '🌈', '☀️', '⛅', '☁️', '⛈️', '🌤️', '🌥️', '🌦️', '🌧️', '🌨️', '🌩️', '❄️', '☃️', '⛄'],
+  'Símbolos': ['✅', '❌', '⭕', '❗', '❓', '❕', '❔', '⚠️', '🚫', '🔔', '🔕', '📢', '📣', '🎵', '🎶', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎯', '🎲', '🎰', '🎳', '🧩'],
+  'Otros': ['📦', '🎁', '🎀', '🎊', '🎉', '🎈', '🏆', '🥇', '🥈', '🥉', '🎖️', '🏅', '🎗️', '🔑', '🗝️', '🔐', '🔒', '🔓', '🔏', '🧳', '🎒', '💼', '📫', '📪', '📬', '📭', '📮', '📯', '📜', '🗞️', '📰', '🔖', '🏷️', '💎', '🔨', '⚒️', '🛠️', '⛏️', '🔧']
+};
+
+// Aplanar todos los emojis para búsqueda rápida
+const ALL_EMOJIS = Object.values(EMOJI_CATEGORIES).flat();
 
 const COLOR_PRESETS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
@@ -311,79 +326,123 @@ export default function CategoryForm({ onClose }: CategoryFormProps) {
             <div className="form-group" style={{ marginBottom: '0.5rem', flex: 1 }}>
               <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>Icono</label>
               <div ref={emojiRef} style={{ position: 'relative' }}>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input
-                    type="text"
-                    name="icon"
-                    className="form-input"
-                    value={formData.icon}
-                    onChange={handleChange}
-                    placeholder="📦"
-                    style={{ 
-                      padding: '0.7rem 0.9rem', 
-                      fontSize: '1.5rem', 
-                      textAlign: 'center',
-                      width: '80px'
-                    }}
-                  />
-                  <motion.button
-                    type="button"
-                    className="btn btn-outline"
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    style={{ padding: '0.7rem 1rem', fontSize: '0.9rem', flex: 1 }}
-                  >
-                    Elegir Emoji
-                  </motion.button>
-                </div>
-                {showEmojiPicker && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      right: 0,
-                      background: 'white',
-                      border: '1px solid var(--gray-300)',
-                      borderRadius: '12px',
-                      boxShadow: 'var(--shadow-lg)',
-                      padding: '0.75rem',
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(8, 1fr)',
-                      gap: '0.5rem',
-                      zIndex: 1000,
-                      marginTop: '0.5rem',
-                      maxHeight: '200px',
-                      overflowY: 'auto'
-                    }}
-                  >
-                    {EMOJI_SUGGESTIONS.map((emoji) => (
-                      <motion.button
-                        key={emoji}
-                        type="button"
-                        onClick={() => {
-                          setFormData(prev => ({ ...prev, icon: emoji }));
-                          setShowEmojiPicker(false);
-                        }}
-                        whileHover={{ scale: 1.2 }}
-                        whileTap={{ scale: 0.9 }}
-                        style={{
-                          fontSize: '1.5rem',
-                          padding: '0.5rem',
-                          border: 'none',
-                          background: formData.icon === emoji ? 'var(--gray-200)' : 'transparent',
-                          borderRadius: '8px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {emoji}
-                      </motion.button>
-                    ))}
-                  </motion.div>
-                )}
+                <motion.button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    width: '100%',
+                    padding: '0.7rem',
+                    fontSize: '1.5rem',
+                    background: 'var(--gray-50)',
+                    border: '2px solid var(--gray-300)',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontWeight: 600
+                  }}
+                >
+                  <span style={{ fontSize: '2rem' }}>{formData.icon}</span>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--gray-600)' }}>Cambiar icono ➜</span>
+                </motion.button>
+                
+                <AnimatePresence>
+                  {showEmojiPicker && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      style={{
+                        position: 'fixed',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        background: 'white',
+                        border: '2px solid var(--gray-300)',
+                        borderRadius: '16px',
+                        boxShadow: 'var(--shadow-xl)',
+                        padding: '1.5rem',
+                        zIndex: 2000,
+                        maxWidth: '600px',
+                        maxHeight: '80vh',
+                        overflowY: 'auto',
+                        width: '90vw'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 600 }}>Selecciona un icono</h3>
+                        <motion.button
+                          type="button"
+                          onClick={() => setShowEmojiPicker(false)}
+                          whileHover={{ scale: 1.1, rotate: 90 }}
+                          whileTap={{ scale: 0.9 }}
+                          style={{
+                            background: 'var(--gray-200)',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                            cursor: 'pointer',
+                            fontSize: '1.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          ×
+                        </motion.button>
+                      </div>
+                      
+                      {Object.entries(EMOJI_CATEGORIES).map(([categoryName, emojis]) => (
+                        <div key={categoryName} style={{ marginBottom: '1.5rem' }}>
+                          <h4 style={{ 
+                            fontSize: '0.9rem', 
+                            fontWeight: 600, 
+                            color: 'var(--primary-blue)',
+                            marginBottom: '0.75rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                          }}>
+                            {categoryName}
+                          </h4>
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(48px, 1fr))',
+                            gap: '0.5rem'
+                          }}>
+                            {emojis.map((emoji) => (
+                              <motion.button
+                                key={emoji}
+                                type="button"
+                                onClick={() => {
+                                  setFormData(prev => ({ ...prev, icon: emoji }));
+                                  setShowEmojiPicker(false);
+                                }}
+                                whileHover={{ scale: 1.15, y: -2 }}
+                                whileTap={{ scale: 0.95 }}
+                                style={{
+                                  fontSize: '1.8rem',
+                                  padding: '0.5rem',
+                                  border: 'none',
+                                  background: formData.icon === emoji ? 'var(--primary-blue)' : 'var(--gray-100)',
+                                  borderRadius: '12px',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s',
+                                  boxShadow: formData.icon === emoji ? 'var(--shadow-md)' : 'none'
+                                }}
+                              >
+                                {emoji}
+                              </motion.button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
 
