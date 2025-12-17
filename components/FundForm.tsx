@@ -338,6 +338,7 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
                   step="0.01"
                   min="0"
                   required
+                  autoFocus
                   style={{ padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
                 />
               </div>
