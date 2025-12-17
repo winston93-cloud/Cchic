@@ -23,7 +23,15 @@ export interface Expense {
 export interface Person {
   id: number;
   name: string;
+  last_name?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  identification?: string;
+  department?: string;
+  active?: boolean;
   created_at?: string;
+  updated_at?: string;
 }
 
 export interface Category {

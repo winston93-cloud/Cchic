@@ -17,7 +17,11 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS persons (
   id BIGSERIAL PRIMARY KEY,
   name TEXT NOT NULL,
+  last_name TEXT,
+  address TEXT,
+  phone TEXT,
   email TEXT,
+  identification TEXT,
   department TEXT,
   active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
@@ -90,11 +94,11 @@ INSERT INTO categories (name, icon, color) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- Datos iniciales - Personas
-INSERT INTO persons (name, department) VALUES
-  ('Juan Pérez', 'Administración'),
-  ('María García', 'Ventas'),
-  ('Carlos López', 'Operaciones'),
-  ('Ana Martínez', 'Recursos Humanos')
+INSERT INTO persons (name, last_name, email, department) VALUES
+  ('Juan', 'Pérez', 'juan.perez@example.com', 'Administración'),
+  ('María', 'García', 'maria.garcia@example.com', 'Ventas'),
+  ('Carlos', 'López', 'carlos.lopez@example.com', 'Operaciones'),
+  ('Ana', 'Martínez', 'ana.martinez@example.com', 'Recursos Humanos')
 ON CONFLICT DO NOTHING;
 
 -- Fondo inicial

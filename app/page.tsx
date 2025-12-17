@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseList from '@/components/ExpenseList';
 import ReportsPanel from '@/components/ReportsPanel';
-import { Expense, Balance } from '@/types';
+import PersonForm from '@/components/PersonForm';
+import { Expense, Balance, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
 
 // Forzar rendering dinámico para evitar errores de build
@@ -15,8 +16,10 @@ export default function Home() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [balance, setBalance] = useState<Balance>({ totalFunds: 0, totalExpenses: 0, balance: 0 });
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [showPersonForm, setShowPersonForm] = useState(false);
   const [showReports, setShowReports] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [editingPerson, setEditingPerson] = useState<Person | null>(null);
   const [loading, setLoading] = useState(true);
   
   // Estados para menús desplegables
@@ -169,6 +172,32 @@ export default function Home() {
     setShowRegistrosMenu(false);
   };
 
+  const handleSavePerson = async (person: Partial<Person>) => {
+    try {
+      if (editingPerson) {
+        const { error } = await supabase
+          .from('persons')
+          .update(person as any)
+          .eq('id', editingPerson.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('persons')
+          .insert([{ ...person, active: true } as any]);
+
+        if (error) throw error;
+      }
+
+      setShowPersonForm(false);
+      setEditingPerson(null);
+      alert('Persona guardada exitosamente');
+    } catch (error) {
+      console.error('Error al guardar persona:', error);
+      alert('Error al guardar la persona');
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
@@ -260,11 +289,15 @@ export default function Home() {
                       Modificación de reposición
                     </div>
                     <div className="dropdown-divider"></div>
-                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                    <div className="dropdown-item" onClick={() => {
+                      setEditingPerson(null);
+                      setShowPersonForm(true);
+                      setShowRegistrosMenu(false);
+                    }}>
                       <span className="dropdown-item-icon">👤</span>
                       Nueva persona
                     </div>
-                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo')}>
+                    <div className="dropdown-item" onClick={() => alert('Función en desarrollo - Selecciona una persona de la lista')}>
                       <span className="dropdown-item-icon">✏️</span>
                       Modificación datos persona
                     </div>
@@ -422,6 +455,16 @@ export default function Home() {
             onClose={() => {
               setShowExpenseForm(false);
               setEditingExpense(null);
+            }}
+          />
+        )}
+        {showPersonForm && (
+          <PersonForm
+            person={editingPerson}
+            onSave={handleSavePerson}
+            onClose={() => {
+              setShowPersonForm(false);
+              setEditingPerson(null);
             }}
           />
         )}
