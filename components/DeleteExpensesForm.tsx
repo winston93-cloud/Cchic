@@ -31,12 +31,15 @@ export default function DeleteExpensesForm({ onClose, onUpdate }: DeleteExpenses
   const fetchExpenses = async () => {
     setLoading(true);
     try {
-      const startDate = `${selectedMonth}-01`;
-      const endDate = new Date(
-        new Date(startDate).getFullYear(),
-        new Date(startDate).getMonth() + 1,
-        0
-      ).toISOString().split('T')[0];
+      // Extraer año y mes
+      const [year, month] = selectedMonth.split('-');
+      const startDate = `${year}-${month}-01`;
+      
+      // Calcular último día del mes
+      const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+      const endDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
+
+      console.log('🔍 Filtrando egresos:', { selectedMonth, startDate, endDate });
 
       const { data, error } = await supabase
         .from('expenses')
@@ -49,7 +52,12 @@ export default function DeleteExpensesForm({ onClose, onUpdate }: DeleteExpenses
         .lte('date', endDate)
         .order('date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error de Supabase:', error);
+        throw error;
+      }
+
+      console.log(`✅ Registros encontrados: ${data?.length || 0}`);
 
       const formattedExpenses = (data || []).map((exp: any) => ({
         id: exp.id,
