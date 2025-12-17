@@ -193,7 +193,7 @@ export default function Home() {
         <div className="header-title">
           <div className="logo-icon">💰</div>
           <div>
-            <h1>cChic - Control de Caja Chica</h1>
+            <h1>Servicios Generales</h1>
           </div>
         </div>
         <motion.div 
