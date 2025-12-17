@@ -421,7 +421,7 @@ export default function Home() {
                 </motion.div>
               </motion.div>
 
-              {/* Filtro por mes */}
+              {/* Filtro por mes - Diseño bonito */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -432,45 +432,112 @@ export default function Home() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '1rem',
-                  padding: '1rem',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  borderRadius: '12px',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                  padding: '1rem 1.5rem',
+                  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(20px)',
+                  border: '2px solid rgba(102, 126, 234, 0.3)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
                 }}
               >
-                <label style={{ 
-                  fontSize: '1rem', 
-                  fontWeight: 600, 
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
+                <div style={{ 
+                  fontSize: '1.5rem',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
                 }}>
-                  📅 Filtrar por mes:
-                </label>
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  style={{
-                    padding: '0.7rem 1rem',
-                    fontSize: '1rem',
-                    borderRadius: '8px',
-                    border: '2px solid rgba(255, 255, 255, 0.2)',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                />
-                <div style={{
-                  marginLeft: 'auto',
-                  fontSize: '0.9rem',
-                  color: 'rgba(255, 255, 255, 0.7)'
-                }}>
-                  {expenses.length} registro(s) encontrado(s)
+                  📅
                 </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <label style={{ 
+                    fontSize: '0.75rem', 
+                    fontWeight: 600, 
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    Período
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        const input = document.getElementById('month-picker') as HTMLInputElement;
+                        input?.showPicker?.();
+                      }}
+                      style={{
+                        padding: '0.5rem 1.25rem',
+                        fontSize: '1.1rem',
+                        fontWeight: 700,
+                        color: 'white',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                        border: '2px solid rgba(255, 255, 255, 0.2)',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <span>
+                        {new Date(selectedMonth + '-01').toLocaleDateString('es-MX', { 
+                          month: 'long', 
+                          year: 'numeric' 
+                        }).split(' ').map((word, i) => 
+                          i === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+                        ).join(' de ')}
+                      </span>
+                      <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>▼</span>
+                    </motion.div>
+                    <input
+                      id="month-picker"
+                      type="month"
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      style={{
+                        position: 'absolute',
+                        opacity: 0,
+                        pointerEvents: 'none',
+                        width: '1px',
+                        height: '1px'
+                      }}
+                    />
+                  </div>
+                </div>
+                <motion.div
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  transition={{ repeat: Infinity, duration: 2, repeatType: "reverse" }}
+                  style={{
+                    marginLeft: 'auto',
+                    padding: '0.5rem 1rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                >
+                  <div style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 800,
+                    color: '#00E5FF',
+                    textShadow: '0 0 10px rgba(0, 229, 255, 0.5)'
+                  }}>
+                    {expenses.length}
+                  </div>
+                  <div style={{
+                    fontSize: '0.7rem',
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    fontWeight: 600
+                  }}>
+                    Registros
+                  </div>
+                </motion.div>
               </motion.div>
 
               {loading ? (
