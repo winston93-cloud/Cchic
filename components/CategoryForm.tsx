@@ -47,8 +47,14 @@ export default function CategoryForm({ onClose }: CategoryFormProps) {
     icon: '📦',
     color: '#4da6ff',
   });
+  const [notification, setNotification] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
+
+  const showNotification = (message: string) => {
+    setNotification(message);
+    setTimeout(() => setNotification(null), 2000);
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -144,7 +150,7 @@ export default function CategoryForm({ onClose }: CategoryFormProps) {
           .eq('id', selectedCategory.id);
 
         if (error) throw error;
-        alert('Categoría actualizada exitosamente');
+        showNotification('✅ Categoría actualizada exitosamente');
       } else {
         // Crear nuevo
         const { error } = await supabase
@@ -152,7 +158,7 @@ export default function CategoryForm({ onClose }: CategoryFormProps) {
           .insert([formData as any]);
 
         if (error) throw error;
-        alert('Categoría creada exitosamente');
+        showNotification('✅ Categoría creada exitosamente');
       }
 
       fetchCategories();
@@ -160,9 +166,9 @@ export default function CategoryForm({ onClose }: CategoryFormProps) {
     } catch (error: any) {
       console.error('Error al guardar categoría:', error);
       if (error.code === '23505') {
-        alert('Ya existe una categoría con ese nombre');
+        showNotification('❌ Ya existe una categoría con ese nombre');
       } else {
-        alert('Error al guardar la categoría');
+        showNotification('❌ Error al guardar la categoría');
       }
     }
   };
@@ -185,27 +191,55 @@ export default function CategoryForm({ onClose }: CategoryFormProps) {
 
       if (error) throw error;
 
-      alert('Categoría eliminada exitosamente');
+      showNotification('✅ Categoría eliminada exitosamente');
       fetchCategories();
       handleNewRecord();
     } catch (error: any) {
       console.error('Error al eliminar categoría:', error);
       if (error.code === '23503') {
-        alert('No se puede eliminar esta categoría porque tiene gastos asociados');
+        showNotification('❌ No se puede eliminar: tiene gastos asociados');
       } else {
-        alert('Error al eliminar la categoría');
+        showNotification('❌ Error al eliminar la categoría');
       }
     }
   };
 
   return (
-    <motion.div 
-      className="modal-overlay" 
-      onClick={onClose}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
+    <>
+      {/* Notificación flotante */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            style={{
+              position: 'fixed',
+              top: '2rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: notification.includes('❌') ? '#EF4444' : '#10B981',
+              color: 'white',
+              padding: '1rem 2rem',
+              borderRadius: '12px',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+              zIndex: 9999,
+              fontWeight: 600,
+              fontSize: '1rem'
+            }}
+          >
+            {notification}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div 
+        className="modal-overlay" 
+        onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
       <motion.div 
         className="modal" 
         onClick={(e) => e.stopPropagation()}
@@ -576,6 +610,7 @@ export default function CategoryForm({ onClose }: CategoryFormProps) {
         </form>
       </motion.div>
     </motion.div>
+    </>
   );
 }
 

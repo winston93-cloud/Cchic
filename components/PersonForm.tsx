@@ -153,7 +153,7 @@ export default function PersonForm({ onClose }: PersonFormProps) {
           .eq('id', selectedPerson.id);
 
         if (error) throw error;
-        alert('Persona actualizada exitosamente');
+        showNotification('✅ Persona actualizada exitosamente');
       } else {
         // Crear nuevo
         const { error } = await supabase
@@ -161,14 +161,14 @@ export default function PersonForm({ onClose }: PersonFormProps) {
           .insert([{ ...formData, active: true } as any]);
 
         if (error) throw error;
-        alert('Persona creada exitosamente');
+        showNotification('✅ Persona creada exitosamente');
       }
 
       fetchPersons();
       handleNewRecord();
     } catch (error) {
       console.error('Error al guardar persona:', error);
-      alert('Error al guardar la persona');
+      showNotification('❌ Error al guardar la persona');
     }
   };
 
@@ -190,12 +190,12 @@ export default function PersonForm({ onClose }: PersonFormProps) {
 
       if (error) throw error;
 
-      alert('Persona eliminada exitosamente');
+      showNotification('✅ Persona eliminada exitosamente');
       fetchPersons();
       handleNewRecord();
     } catch (error) {
       console.error('Error al eliminar persona:', error);
-      alert('Error al eliminar la persona');
+      showNotification('❌ Error al eliminar la persona');
     }
   };
 
@@ -205,13 +205,41 @@ export default function PersonForm({ onClose }: PersonFormProps) {
   };
 
   return (
-    <motion.div 
-      className="modal-overlay" 
-      onClick={onClose}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
+    <>
+      {/* Notificación flotante */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            style={{
+              position: 'fixed',
+              top: '2rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: notification.includes('❌') ? '#EF4444' : '#10B981',
+              color: 'white',
+              padding: '1rem 2rem',
+              borderRadius: '12px',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+              zIndex: 9999,
+              fontWeight: 600,
+              fontSize: '1rem'
+            }}
+          >
+            {notification}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div 
+        className="modal-overlay" 
+        onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
       <motion.div 
         className="modal" 
         onClick={(e) => e.stopPropagation()}
@@ -460,5 +488,6 @@ export default function PersonForm({ onClose }: PersonFormProps) {
         </form>
       </motion.div>
     </motion.div>
+    </>
   );
 }
