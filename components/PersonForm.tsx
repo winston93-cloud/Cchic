@@ -72,16 +72,24 @@ export default function PersonForm({ onClose }: PersonFormProps) {
   };
 
   const filteredPersons = persons.filter(person => {
-    const fullName = `${person.name} ${person.last_name || ''}`.toLowerCase();
-    const search = searchQuery.toLowerCase();
+    if (!searchQuery.trim()) return false;
+    const fullName = `${person.name} ${person.last_name || ''}`.toLowerCase().trim();
+    const search = searchQuery.toLowerCase().trim();
     return fullName.includes(search) || 
+           person.name?.toLowerCase().includes(search) ||
+           person.last_name?.toLowerCase().includes(search) ||
            person.email?.toLowerCase().includes(search) ||
            person.identification?.toLowerCase().includes(search);
   });
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-    setShowSuggestions(value.length > 0);
+    setShowSuggestions(value.trim().length > 0);
+    // Si se limpia la búsqueda, limpiar también la selección
+    if (value.trim().length === 0) {
+      setSelectedPerson(null);
+      handleNewRecord();
+    }
   };
 
   const handleSelectPerson = (person: Person) => {
@@ -247,12 +255,17 @@ export default function PersonForm({ onClose }: PersonFormProps) {
                 className="form-input"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                onFocus={() => setShowSuggestions(searchQuery.length > 0)}
+                onFocus={() => {
+                  if (searchQuery.trim().length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
                 placeholder="Escribe nombre, email o identificación..."
                 style={{ width: '100%', padding: '0.7rem 0.9rem', fontSize: '0.9rem' }}
+                autoComplete="off"
               />
           <AnimatePresence>
-            {showSuggestions && filteredPersons.length > 0 && (
+            {showSuggestions && searchQuery.trim().length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -272,33 +285,39 @@ export default function PersonForm({ onClose }: PersonFormProps) {
                   marginTop: '0.5rem'
                 }}
               >
-                {filteredPersons.map((person) => (
-                  <motion.div
-                    key={person.id}
-                    onClick={() => handleSelectPerson(person)}
-                    style={{
-                      padding: '1rem',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid var(--gray-200)',
-                      transition: 'background 0.2s'
-                    }}
-                    whileHover={{ background: 'var(--gray-50)' }}
-                  >
-                    <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>
-                      {person.name} {person.last_name || ''}
-                    </div>
-                    {person.email && (
-                      <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: '0.25rem' }}>
-                        📧 {person.email}
+                {filteredPersons.length > 0 ? (
+                  filteredPersons.map((person) => (
+                    <motion.div
+                      key={person.id}
+                      onClick={() => handleSelectPerson(person)}
+                      style={{
+                        padding: '0.75rem 1rem',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid var(--gray-200)',
+                        transition: 'background 0.2s'
+                      }}
+                      whileHover={{ background: 'var(--gray-50)' }}
+                    >
+                      <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>
+                        {person.name} {person.last_name || ''}
                       </div>
-                    )}
-                    {person.identification && (
-                      <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)' }}>
-                        🆔 {person.identification}
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
+                      {person.email && (
+                        <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: '0.25rem' }}>
+                          📧 {person.email}
+                        </div>
+                      )}
+                      {person.identification && (
+                        <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)' }}>
+                          🆔 {person.identification}
+                        </div>
+                      )}
+                    </motion.div>
+                  ))
+                ) : (
+                  <div style={{ padding: '1rem', color: 'var(--gray-500)', textAlign: 'center' }}>
+                    No se encontraron resultados
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
