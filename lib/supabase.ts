@@ -1,24 +1,42 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+let supabaseInstance: SupabaseClient | null = null;
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase environment variables');
-  console.error('URL:', supabaseUrl ? '✓' : '✗');
-  console.error('KEY:', supabaseKey ? '✓' : '✗');
-}
+const getSupabase = (): SupabaseClient => {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
 
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseKey || 'placeholder-key',
-  {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY in Vercel.');
+  }
+
+  supabaseInstance = createClient(supabaseUrl, supabaseKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
     }
+  });
+
+  return supabaseInstance;
+};
+
+// Proxy para acceso lazy
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(target, prop) {
+    const client = getSupabase();
+    const value = client[prop as keyof SupabaseClient];
+    
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+    
+    return value;
   }
-);
+});
 
 // Tipos para la base de datos
 export interface Database {
