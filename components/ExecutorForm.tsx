@@ -168,67 +168,59 @@ export default function ExecutorForm({ onClose, onSave }: ExecutorFormProps) {
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="modal-overlay"
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0, 0, 0, 0.75)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '1rem'
-      }}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '500px', maxHeight: '75vh', overflowY: 'auto' }}
-      >
-        {/* Notificación */}
-        <AnimatePresence>
-          {notification && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              style={{
-                position: 'fixed',
-                top: '20px',
-                right: '20px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                padding: '1rem 1.5rem',
-                borderRadius: '12px',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-                zIndex: 10000,
-                fontSize: '0.95rem',
-                fontWeight: '500'
-              }}
-            >
-              {notification}
-            </motion.div>
-          )}
-        </AnimatePresence>
+    <>
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            style={{
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              padding: '1rem 1.5rem',
+              borderRadius: '12px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+              zIndex: 10000,
+              fontSize: '0.95rem',
+              fontWeight: '500'
+            }}
+          >
+            {notification}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        <div className="modal-header">
-          <h2 style={{ fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            👔 Ejecutor
-          </h2>
-          <button className="close-btn" onClick={onClose}>✕</button>
-        </div>
+      <motion.div 
+        className="modal-overlay" 
+        onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div 
+          className="modal" 
+          onClick={(e) => e.stopPropagation()}
+          initial={{ scale: 0.9, y: 50 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.9, y: 50 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          style={{ maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }}
+        >
+          <div className="modal-header" style={{ marginBottom: '0.8rem', paddingBottom: '0.5rem' }}>
+            <h2 className="modal-title" style={{ fontSize: '1.3rem' }}>👔 Ejecutor</h2>
+            <motion.button 
+              className="modal-close" 
+              onClick={onClose}
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              ×
+            </motion.button>
+          </div>
 
         <form onSubmit={handleSave} style={{ padding: '0.8rem 1.2rem 1rem' }}>
           {/* Búsqueda Autocompletada */}
@@ -425,8 +417,9 @@ export default function ExecutorForm({ onClose, onSave }: ExecutorFormProps) {
             Cancelar
           </motion.button>
         </form>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </>
   );
 }
 
