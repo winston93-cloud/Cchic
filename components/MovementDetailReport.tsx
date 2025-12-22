@@ -167,20 +167,215 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Detalle');
       
-      // Generar blob y abrir en nueva ventana
+      // Generar blob
       const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
       const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = URL.createObjectURL(blob);
       
-      // Abrir en nueva pestaña (el navegador lo descargará automáticamente)
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Detalle_Movimientos_${startDate}_${endDate}.xlsx`;
-      link.target = '_blank';
-      link.click();
+      // Crear vista previa HTML
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Vista Previa - Detalle de Movimientos</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              background: linear-gradient(135deg, #0A1929 0%, #1976D2 100%);
+              min-height: 100vh;
+              padding: 20px;
+            }
+            .container {
+              max-width: 1200px;
+              margin: 0 auto;
+              background: rgba(255, 255, 255, 0.95);
+              border-radius: 16px;
+              padding: 40px;
+              box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+              padding-bottom: 20px;
+              border-bottom: 3px solid #1976D2;
+            }
+            h1 {
+              color: #0A1929;
+              font-size: 28px;
+              margin-bottom: 10px;
+            }
+            .period {
+              color: #666;
+              font-size: 16px;
+            }
+            .download-btn {
+              display: inline-block;
+              background: linear-gradient(135deg, #00E676 0%, #00C853 100%);
+              color: white;
+              padding: 15px 40px;
+              border-radius: 8px;
+              text-decoration: none;
+              font-weight: bold;
+              font-size: 16px;
+              margin: 20px 0;
+              transition: transform 0.2s;
+              box-shadow: 0 4px 12px rgba(0, 230, 118, 0.4);
+            }
+            .download-btn:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 6px 20px rgba(0, 230, 118, 0.6);
+            }
+            .person-section {
+              margin: 30px 0;
+              padding: 20px;
+              background: rgba(25, 118, 210, 0.05);
+              border-left: 4px solid #1976D2;
+              border-radius: 8px;
+            }
+            .person-name {
+              font-size: 22px;
+              font-weight: bold;
+              color: #0A1929;
+              margin-bottom: 15px;
+            }
+            .category-section {
+              margin: 20px 0 20px 20px;
+              padding: 15px;
+              background: white;
+              border-radius: 8px;
+              border-left: 3px solid #00E5FF;
+            }
+            .category-name {
+              font-size: 18px;
+              font-weight: 600;
+              color: #1976D2;
+              margin-bottom: 10px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 10px 0;
+            }
+            th {
+              background: #0A1929;
+              color: white;
+              padding: 12px;
+              text-align: left;
+              font-weight: 600;
+              font-size: 14px;
+            }
+            td {
+              padding: 10px 12px;
+              border-bottom: 1px solid #eee;
+              font-size: 14px;
+            }
+            tr:hover td {
+              background: rgba(25, 118, 210, 0.05);
+            }
+            .subtotal {
+              font-weight: bold;
+              background: rgba(0, 229, 255, 0.1);
+              border-top: 2px solid #00E5FF;
+            }
+            .person-total {
+              font-weight: bold;
+              font-size: 16px;
+              background: rgba(25, 118, 210, 0.15);
+              border-top: 2px solid #1976D2;
+              padding: 15px;
+              margin: 10px 0;
+              border-radius: 4px;
+            }
+            .grand-total {
+              font-size: 20px;
+              font-weight: bold;
+              background: linear-gradient(135deg, #FF1744 0%, #C62828 100%);
+              color: white;
+              padding: 20px;
+              text-align: right;
+              border-radius: 8px;
+              margin-top: 30px;
+              box-shadow: 0 4px 12px rgba(255, 23, 68, 0.4);
+            }
+            .amount {
+              text-align: right;
+              font-weight: 500;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>📊 REPORTE DE DETALLE DE MOVIMIENTOS</h1>
+              <p class="period">Del ${formatDate(startDate)} al ${formatDate(endDate)}</p>
+              <a href="${url}" download="Detalle_Movimientos_${startDate}_${endDate}.xlsx" class="download-btn">
+                📥 Descargar Excel
+              </a>
+            </div>
+            
+            ${groupedData.map(personGroup => `
+              <div class="person-section">
+                <div class="person-name">👤 ${personGroup.person}</div>
+                
+                ${personGroup.categories.map(catGroup => `
+                  <div class="category-section">
+                    <div class="category-name">📁 ${catGroup.category}</div>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Fecha</th>
+                          <th>Recibo</th>
+                          <th>Concepto</th>
+                          <th style="text-align: right;">Monto</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${catGroup.movements.map(mov => `
+                          <tr>
+                            <td>${formatDate(mov.date)}</td>
+                            <td>${mov.voucher_number}</td>
+                            <td>${mov.notes || '-'}</td>
+                            <td class="amount">${formatCurrency(mov.amount)}</td>
+                          </tr>
+                        `).join('')}
+                        <tr class="subtotal">
+                          <td colspan="3" style="text-align: right; padding-right: 20px;">
+                            <strong>Subtotal ${catGroup.category}:</strong>
+                          </td>
+                          <td class="amount"><strong>${formatCurrency(catGroup.subtotal)}</strong></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                `).join('')}
+                
+                <div class="person-total">
+                  <span style="float: left;">TOTAL ${personGroup.person}:</span>
+                  <span style="float: right;">${formatCurrency(personGroup.total)}</span>
+                  <div style="clear: both;"></div>
+                </div>
+              </div>
+            `).join('')}
+            
+            <div class="grand-total">
+              GRAN TOTAL: ${formatCurrency(grandTotal)}
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // Abrir en nueva ventana con la vista previa
+      const previewWindow = window.open('', '_blank');
+      if (previewWindow) {
+        previewWindow.document.write(htmlContent);
+        previewWindow.document.close();
+      }
       
       // Limpiar URL después de un momento
-      setTimeout(() => URL.revokeObjectURL(url), 100);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (error) {
       console.error('Error al exportar a Excel:', error);
       alert('Error al exportar a Excel');
