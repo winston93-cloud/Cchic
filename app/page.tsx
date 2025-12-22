@@ -11,6 +11,7 @@ import ExecutorForm from '@/components/ExecutorForm';
 import PeriodForm from '@/components/PeriodForm';
 import FundForm from '@/components/FundForm';
 import DeleteExpensesForm from '@/components/DeleteExpensesForm';
+import MovementDetailReport from '@/components/MovementDetailReport';
 import { Expense, Balance, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { getMonthLimitsFromString } from '@/lib/periods';
@@ -29,6 +30,7 @@ export default function Home() {
   const [showFundForm, setShowFundForm] = useState(false);
   const [showDeleteForm, setShowDeleteForm] = useState(false);
   const [showReports, setShowReports] = useState(false);
+  const [showMovementReport, setShowMovementReport] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>(
@@ -351,7 +353,7 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                   >
-                    <div className="dropdown-item" onClick={() => { setShowReports(true); setShowReportesMenu(false); }}>
+                    <div className="dropdown-item" onClick={() => { setShowMovementReport(true); setShowReportesMenu(false); }}>
                       <span className="dropdown-item-icon">📋</span>
                       Detalle de movimientos
                     </div>
@@ -643,6 +645,13 @@ export default function Home() {
             onUpdate={() => {
               fetchExpenses();
               fetchBalance();
+            }}
+          />
+        )}
+        {showMovementReport && (
+          <MovementDetailReport
+            onClose={() => {
+              setShowMovementReport(false);
             }}
           />
         )}
