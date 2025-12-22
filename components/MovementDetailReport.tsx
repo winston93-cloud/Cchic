@@ -166,7 +166,21 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
 
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Detalle');
-      XLSX.writeFile(wb, `Detalle_Movimientos_${startDate}_${endDate}.xlsx`);
+      
+      // Generar blob y abrir en nueva ventana
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      
+      // Abrir en nueva pestaña (el navegador lo descargará automáticamente)
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Detalle_Movimientos_${startDate}_${endDate}.xlsx`;
+      link.target = '_blank';
+      link.click();
+      
+      // Limpiar URL después de un momento
+      setTimeout(() => URL.revokeObjectURL(url), 100);
     } catch (error) {
       console.error('Error al exportar a Excel:', error);
       alert('Error al exportar a Excel');
