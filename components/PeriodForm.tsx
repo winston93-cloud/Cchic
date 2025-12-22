@@ -67,9 +67,9 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
     
-    // Calcular límites naturales del mes seleccionado
-    const startDate = new Date(formData.year, formData.month - 1, 1);
-    const endDate = new Date(formData.year, formData.month, 0);
+    // Calcular límites naturales del mes actual
+    const startDate = new Date(currentYear, currentMonth - 1, 1);
+    const endDate = new Date(currentYear, currentMonth, 0);
     
     setSelectedPeriod(null);
     setFormData({
@@ -102,6 +102,28 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
     
     if (new Date(formData.end_date) <= new Date(formData.start_date)) {
       showNotification('❌ La fecha final debe ser mayor que la inicial');
+      return;
+    }
+    
+    // Verificar si ya existe un período para ese año-mes (excepto si estamos editando)
+    try {
+      const { data: existing, error: checkError } = await supabase
+        .from('custom_periods')
+        .select('id')
+        .eq('year', formData.year)
+        .eq('month', formData.month)
+        .eq('active', true)
+        .neq('id', selectedPeriod?.id || 0);
+
+      if (checkError) throw checkError;
+
+      if (existing && existing.length > 0) {
+        showNotification(`❌ Ya existe un período para ${MONTHS[formData.month - 1]} ${formData.year}`);
+        return;
+      }
+    } catch (error: any) {
+      console.error('Error al verificar duplicados:', error);
+      showNotification('❌ Error al verificar duplicados');
       return;
     }
     
