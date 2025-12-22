@@ -80,3 +80,15 @@ export interface Report {
   average: number;
 }
 
+export interface CustomPeriod {
+  id: number;
+  year: number;
+  month: number;
+  start_date: string;
+  end_date: string;
+  notes?: string;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+

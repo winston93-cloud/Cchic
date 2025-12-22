@@ -8,6 +8,7 @@ import ReportsPanel from '@/components/ReportsPanel';
 import PersonForm from '@/components/PersonForm';
 import CategoryForm from '@/components/CategoryForm';
 import ExecutorForm from '@/components/ExecutorForm';
+import PeriodForm from '@/components/PeriodForm';
 import FundForm from '@/components/FundForm';
 import DeleteExpensesForm from '@/components/DeleteExpensesForm';
 import { Expense, Balance, Person } from '@/types';
@@ -23,6 +24,7 @@ export default function Home() {
   const [showPersonForm, setShowPersonForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showExecutorForm, setShowExecutorForm] = useState(false);
+  const [showPeriodForm, setShowPeriodForm] = useState(false);
   const [showFundForm, setShowFundForm] = useState(false);
   const [showDeleteForm, setShowDeleteForm] = useState(false);
   const [showReports, setShowReports] = useState(false);
@@ -306,6 +308,14 @@ export default function Home() {
                     }}>
                       <span className="dropdown-item-icon">👔</span>
                       Ejecutor
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-item" onClick={() => {
+                      setShowPeriodForm(true);
+                      setShowRegistrosMenu(false);
+                    }}>
+                      <span className="dropdown-item-icon">📅</span>
+                      Períodos Personalizados
                     </div>
                   </motion.div>
                 )}
@@ -599,6 +609,16 @@ export default function Home() {
             }}
             onSave={() => {
               fetchExpenses();
+            }}
+          />
+        )}
+        {showPeriodForm && (
+          <PeriodForm
+            onClose={() => {
+              setShowPeriodForm(false);
+            }}
+            onSave={() => {
+              // Los períodos no afectan directamente a expenses, pero podríamos recargar
             }}
           />
         )}
