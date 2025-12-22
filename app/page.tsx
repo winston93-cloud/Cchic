@@ -13,6 +13,7 @@ import FundForm from '@/components/FundForm';
 import DeleteExpensesForm from '@/components/DeleteExpensesForm';
 import { Expense, Balance, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
+import { getMonthLimitsFromString } from '@/lib/periods';
 
 // Forzar rendering dinámico para evitar errores de build
 export const dynamic = 'force-dynamic';
@@ -69,11 +70,10 @@ export default function Home() {
 
   const fetchExpenses = async () => {
     try {
-      // Calcular rango de fechas del mes seleccionado
-      const [year, month] = selectedMonth.split('-');
-      const startDate = `${year}-${month}-01`;
-      const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
-      const endDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
+      // Obtener límites del mes (personalizados o naturales)
+      const limits = await getMonthLimitsFromString(selectedMonth);
+      const startDate = limits.startDate;
+      const endDate = limits.endDate;
 
       const { data, error } = await supabase
         .from('expenses')

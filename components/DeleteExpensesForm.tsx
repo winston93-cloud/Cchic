@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Expense } from '@/types';
 import { supabase } from '@/lib/supabase';
+import { getMonthLimitsFromString } from '@/lib/periods';
 
 interface DeleteExpensesFormProps {
   onClose: () => void;
@@ -31,15 +32,17 @@ export default function DeleteExpensesForm({ onClose, onUpdate }: DeleteExpenses
   const fetchExpenses = async () => {
     setLoading(true);
     try {
-      // Extraer año y mes
-      const [year, month] = selectedMonth.split('-');
-      const startDate = `${year}-${month}-01`;
-      
-      // Calcular último día del mes
-      const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
-      const endDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
+      // Obtener límites del mes (personalizados o naturales)
+      const limits = await getMonthLimitsFromString(selectedMonth);
+      const startDate = limits.startDate;
+      const endDate = limits.endDate;
 
-      console.log('🔍 Filtrando egresos:', { selectedMonth, startDate, endDate });
+      console.log('🔍 Filtrando egresos:', { 
+        selectedMonth, 
+        startDate, 
+        endDate, 
+        isCustom: limits.isCustom 
+      });
 
       const { data, error } = await supabase
         .from('expenses')
