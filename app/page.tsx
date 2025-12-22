@@ -265,9 +265,12 @@ export default function Home() {
                       <span className="dropdown-item-icon">➕</span>
                       Registro de egreso
                     </div>
-                    <div className="dropdown-item" onClick={() => alert('Modificar egreso seleccionado de la tabla')}>
-                      <span className="dropdown-item-icon">✏️</span>
-                      Modificación de egreso
+                    <div className="dropdown-item" onClick={() => {
+                      setShowFundForm(true);
+                      setShowRegistrosMenu(false);
+                    }}>
+                      <span className="dropdown-item-icon">💵</span>
+                      Reposición de fondos
                     </div>
                     <div className="dropdown-divider"></div>
                     <div className="dropdown-item" onClick={() => {
