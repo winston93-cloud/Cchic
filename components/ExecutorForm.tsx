@@ -174,6 +174,20 @@ export default function ExecutorForm({ onClose, onSave }: ExecutorFormProps) {
       exit={{ opacity: 0 }}
       className="modal-overlay"
       onClick={onClose}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0, 0, 0, 0.75)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        padding: '1rem'
+      }}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
