@@ -5,6 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Expense, Category, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
 
+interface Executor {
+  id: number;
+  name: string;
+  identification: string;
+  active: boolean;
+}
+
 interface ExpenseFormProps {
   expense: Expense | null;
   onSave: (expense: Partial<Expense>) => void;
@@ -14,12 +21,16 @@ interface ExpenseFormProps {
 export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
+  const [executors, setExecutors] = useState<Executor[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [selectedExecutor, setSelectedExecutor] = useState<Executor | null>(null);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [personSearchQuery, setPersonSearchQuery] = useState('');
+  const [executorSearchQuery, setExecutorSearchQuery] = useState('');
   const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
   const [showPersonSuggestions, setShowPersonSuggestions] = useState(false);
+  const [showExecutorSuggestions, setShowExecutorSuggestions] = useState(false);
   const [formData, setFormData] = useState({
     date: expense?.date || new Date().toISOString().split('T')[0],
     correspondent_to: expense?.correspondent_to || '',
@@ -32,12 +43,14 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
 
   const categorySearchRef = useRef<HTMLDivElement>(null);
   const personSearchRef = useRef<HTMLDivElement>(null);
+  const executorSearchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchCategories();
     fetchPersons();
+    fetchExecutors();
     
-    // Si estamos editando, cargar la categoría y persona seleccionada
+    // Si estamos editando, cargar la categoría, persona y ejecutor seleccionados
     if (expense) {
       if (expense.category_id) {
         const cat = categories.find(c => c.id === expense.category_id);
@@ -49,6 +62,9 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
       if (expense.correspondent_to) {
         setPersonSearchQuery(expense.correspondent_to);
       }
+      if (expense.executor) {
+        setExecutorSearchQuery(expense.executor);
+      }
     }
   }, []);
 
@@ -59,6 +75,9 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
       }
       if (personSearchRef.current && !personSearchRef.current.contains(event.target as Node)) {
         setShowPersonSuggestions(false);
+      }
+      if (executorSearchRef.current && !executorSearchRef.current.contains(event.target as Node)) {
+        setShowExecutorSuggestions(false);
       }
     };
 
@@ -103,6 +122,21 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
     }
   };
 
+  const fetchExecutors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('executors')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+
+      if (error) throw error;
+      setExecutors(data || []);
+    } catch (error) {
+      console.error('Error al cargar ejecutores:', error);
+    }
+  };
+
   const filteredCategories = categories.filter(cat => {
     if (!categorySearchQuery.trim()) return true;
     const search = categorySearchQuery.toLowerCase().trim();
@@ -143,6 +177,13 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
     setPersonSearchQuery(person.name);
     setFormData(prev => ({ ...prev, correspondent_to: person.name }));
     setShowPersonSuggestions(false);
+  };
+
+  const handleSelectExecutor = (executor: Executor) => {
+    setSelectedExecutor(executor);
+    setExecutorSearchQuery(executor.name);
+    setFormData(prev => ({ ...prev, executor: executor.name }));
+    setShowExecutorSuggestions(false);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -286,17 +327,79 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
           </div>
 
           <div className="form-row">
-            <div className="form-group">
+            {/* Ejecutor del Gasto - Búsqueda autocompletada */}
+            <div className="form-group" ref={executorSearchRef} style={{ position: 'relative' }}>
               <label className="form-label">👤 Ejecutor del Gasto *</label>
               <input
                 type="text"
-                name="executor"
                 className="form-input"
-                value={formData.executor}
-                onChange={handleChange}
-                placeholder="Nombre del ejecutor"
+                value={executorSearchQuery}
+                onChange={(e) => {
+                  setExecutorSearchQuery(e.target.value);
+                  setShowExecutorSuggestions(true);
+                }}
+                onFocus={() => setShowExecutorSuggestions(true)}
+                placeholder="Buscar ejecutor..."
+                autoComplete="off"
                 required
               />
+              <AnimatePresence>
+                {showExecutorSuggestions && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      border: '1px solid var(--gray-300)',
+                      borderRadius: '12px',
+                      boxShadow: 'var(--shadow-lg)',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      marginTop: '0.5rem'
+                    }}
+                  >
+                    {executors.filter(exec => 
+                      exec.name.toLowerCase().includes(executorSearchQuery.toLowerCase()) ||
+                      exec.identification?.toLowerCase().includes(executorSearchQuery.toLowerCase())
+                    ).length > 0 ? (
+                      executors.filter(exec => 
+                        exec.name.toLowerCase().includes(executorSearchQuery.toLowerCase()) ||
+                        exec.identification?.toLowerCase().includes(executorSearchQuery.toLowerCase())
+                      ).map((executor) => (
+                        <motion.div
+                          key={executor.id}
+                          onClick={() => handleSelectExecutor(executor)}
+                          style={{
+                            padding: '0.75rem 1rem',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid var(--gray-200)',
+                          }}
+                          whileHover={{ background: 'var(--gray-50)' }}
+                        >
+                          <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>
+                            {executor.name}
+                          </div>
+                          {executor.identification && (
+                            <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: '0.25rem' }}>
+                              🆔 {executor.identification}
+                            </div>
+                          )}
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div style={{ padding: '1rem', color: 'var(--gray-500)', textAlign: 'center' }}>
+                        No se encontraron ejecutores
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Categoría - Búsqueda autocompletada con iconos y colores */}

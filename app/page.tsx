@@ -7,6 +7,7 @@ import ExpenseList from '@/components/ExpenseList';
 import ReportsPanel from '@/components/ReportsPanel';
 import PersonForm from '@/components/PersonForm';
 import CategoryForm from '@/components/CategoryForm';
+import ExecutorForm from '@/components/ExecutorForm';
 import FundForm from '@/components/FundForm';
 import DeleteExpensesForm from '@/components/DeleteExpensesForm';
 import { Expense, Balance, Person } from '@/types';
@@ -21,6 +22,7 @@ export default function Home() {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showPersonForm, setShowPersonForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [showExecutorForm, setShowExecutorForm] = useState(false);
   const [showFundForm, setShowFundForm] = useState(false);
   const [showDeleteForm, setShowDeleteForm] = useState(false);
   const [showReports, setShowReports] = useState(false);
@@ -296,6 +298,14 @@ export default function Home() {
                     }}>
                       <span className="dropdown-item-icon">🏷️</span>
                       Categorías
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <div className="dropdown-item" onClick={() => {
+                      setShowExecutorForm(true);
+                      setShowRegistrosMenu(false);
+                    }}>
+                      <span className="dropdown-item-icon">👔</span>
+                      Ejecutor
                     </div>
                   </motion.div>
                 )}
@@ -579,6 +589,16 @@ export default function Home() {
           <CategoryForm
             onClose={() => {
               setShowCategoryForm(false);
+            }}
+          />
+        )}
+        {showExecutorForm && (
+          <ExecutorForm
+            onClose={() => {
+              setShowExecutorForm(false);
+            }}
+            onSave={() => {
+              fetchExpenses();
             }}
           />
         )}

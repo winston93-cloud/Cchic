@@ -34,6 +34,15 @@ export interface Person {
   updated_at?: string;
 }
 
+export interface Executor {
+  id: number;
+  name: string;
+  identification?: string;
+  active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Category {
   id: number;
   name: string;
