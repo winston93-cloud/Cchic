@@ -307,16 +307,19 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
                       <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.3rem', display: 'block' }}>
                         📆 Año
                       </label>
-                      <input
-                        type="number"
+                      <select
                         className="form-input"
                         value={formData.year}
                         onChange={(e) => handleYearMonthChange('year', parseInt(e.target.value))}
-                        min="2020"
-                        max="2100"
                         required
                         style={{ padding: '0.6rem', fontSize: '0.9rem' }}
-                      />
+                      >
+                        {Array.from({ length: 31 }, (_, i) => 2020 + i).map((year) => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.3rem', display: 'block' }}>
