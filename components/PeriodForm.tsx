@@ -192,14 +192,15 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
     if (!selectedPeriod?.id) return;
     
     try {
+      // Eliminación total de la tabla
       const { error } = await supabase
         .from('custom_periods')
-        .update({ active: false })
+        .delete()
         .eq('id', selectedPeriod.id);
 
       if (error) throw error;
       
-      showNotification('✅ Período eliminado exitosamente');
+      showNotification('✅ Período eliminado completamente');
       await fetchPeriods();
       handleNew();
       onSave();
