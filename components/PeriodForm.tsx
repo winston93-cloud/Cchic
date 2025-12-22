@@ -31,11 +31,17 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
   const [filterYear, setFilterYear] = useState<number>(new Date().getFullYear());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
+  // Inicializar con límites naturales del mes actual
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+  const initialStartDate = new Date(currentYear, currentMonth - 1, 1);
+  const initialEndDate = new Date(currentYear, currentMonth, 0);
+  
   const [formData, setFormData] = useState({
-    year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1,
-    start_date: '',
-    end_date: '',
+    year: currentYear,
+    month: currentMonth,
+    start_date: initialStartDate.toISOString().split('T')[0],
+    end_date: initialEndDate.toISOString().split('T')[0],
     notes: ''
   });
 
