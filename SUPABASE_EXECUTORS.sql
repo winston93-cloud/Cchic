@@ -73,13 +73,12 @@ SELECT
   c.name as category_name,
   c.icon as category_icon,
   c.color as category_color,
-  p.name as person_name,
-  p.identification as person_identification,
+  e.correspondent_to as person_name,
+  NULL::text as person_identification,
   ex.name as executor_name,
   ex.identification as executor_identification
 FROM expenses e
 LEFT JOIN categories c ON e.category_id = c.id
-LEFT JOIN persons p ON e.correspondent_to = p.id
 LEFT JOIN executors ex ON e.executor_id = ex.id;
 
 -- =====================================================
