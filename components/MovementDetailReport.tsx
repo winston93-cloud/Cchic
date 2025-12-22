@@ -9,19 +9,25 @@ interface MovementDetailReportProps {
   onClose: () => void;
 }
 
+interface GroupedData {
+  person: string;
+  categories: {
+    category: string;
+    icon?: string;
+    color?: string;
+    movements: Expense[];
+    subtotal: number;
+  }[];
+  total: number;
+}
+
 export default function MovementDetailReport({ onClose }: MovementDetailReportProps) {
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [movements, setMovements] = useState<Expense[]>([]);
+  const [groupedData, setGroupedData] = useState<GroupedData[]>([]);
   const [loading, setLoading] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [stats, setStats] = useState({
-    total: 0,
-    count: 0,
-    average: 0,
-    max: 0,
-    min: 0
-  });
+  const [grandTotal, setGrandTotal] = useState(0);
 
   const fetchMovements = async () => {
     setLoading(true);
@@ -35,6 +41,7 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
         .eq('status', 'active')
         .gte('date', startDate)
         .lte('date', endDate)
+        .order('correspondent_to')
         .order('date', { ascending: false });
 
       if (error) throw error;
@@ -42,29 +49,54 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
       const formattedExpenses = (data || []).map((exp: any) => ({
         id: exp.id,
         date: exp.date,
-        correspondent_to: exp.correspondent_to,
+        correspondent_to: exp.correspondent_to || 'Sin asignar',
         executor: exp.executor,
         category_id: exp.category_id,
         amount: exp.amount,
         voucher_number: exp.voucher_number,
         notes: exp.notes,
         status: exp.status,
-        category_name: exp.categories?.name,
+        category_name: exp.categories?.name || 'Sin categoría',
         category_icon: exp.categories?.icon,
         category_color: exp.categories?.color,
       }));
 
-      setMovements(formattedExpenses);
+      // Agrupar por persona y categoría
+      const grouped: { [key: string]: GroupedData } = {};
+      let total = 0;
 
-      // Calcular estadísticas
-      const amounts = formattedExpenses.map(m => m.amount);
-      const total = amounts.reduce((sum, amount) => sum + amount, 0);
-      const count = amounts.length;
-      const average = count > 0 ? total / count : 0;
-      const max = count > 0 ? Math.max(...amounts) : 0;
-      const min = count > 0 ? Math.min(...amounts) : 0;
+      formattedExpenses.forEach((expense: Expense) => {
+        const person = expense.correspondent_to || 'Sin asignar';
+        const category = expense.category_name || 'Sin categoría';
 
-      setStats({ total, count, average, max, min });
+        if (!grouped[person]) {
+          grouped[person] = {
+            person,
+            categories: [],
+            total: 0
+          };
+        }
+
+        let categoryGroup = grouped[person].categories.find(c => c.category === category);
+        if (!categoryGroup) {
+          categoryGroup = {
+            category,
+            icon: expense.category_icon,
+            color: expense.category_color,
+            movements: [],
+            subtotal: 0
+          };
+          grouped[person].categories.push(categoryGroup);
+        }
+
+        categoryGroup.movements.push(expense);
+        categoryGroup.subtotal += expense.amount;
+        grouped[person].total += expense.amount;
+        total += expense.amount;
+      });
+
+      setGroupedData(Object.values(grouped));
+      setGrandTotal(total);
       setShowReport(true);
     } catch (error) {
       console.error('Error al cargar movimientos:', error);
@@ -72,6 +104,166 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
     } finally {
       setLoading(false);
     }
+  };
+
+  const exportToExcel = async () => {
+    const XLSX = (await import('xlsx')).default;
+    
+    const data: any[] = [];
+    
+    // Título
+    data.push(['REPORTE DE DETALLE DE MOVIMIENTOS']);
+    data.push([`Del ${formatDate(startDate)} al ${formatDate(endDate)}`]);
+    data.push([]);
+
+    groupedData.forEach((personGroup) => {
+      // Persona
+      data.push([`PERSONA: ${personGroup.person}`, '', '', '', '']);
+      data.push(['Fecha', 'Recibo', 'Concepto', 'Categoría', 'Monto']);
+
+      personGroup.categories.forEach((catGroup) => {
+        // Categoría
+        data.push([`  ${catGroup.category}`, '', '', '', '']);
+        
+        // Movimientos
+        catGroup.movements.forEach((mov) => {
+          data.push([
+            formatDate(mov.date),
+            mov.voucher_number,
+            mov.notes || '-',
+            catGroup.category,
+            mov.amount
+          ]);
+        });
+
+        // Subtotal de categoría
+        data.push(['', '', '', `Subtotal ${catGroup.category}:`, catGroup.subtotal]);
+        data.push([]);
+      });
+
+      // Total por persona
+      data.push(['', '', '', `TOTAL ${personGroup.person}:`, personGroup.total]);
+      data.push([]);
+    });
+
+    // Gran total
+    data.push(['', '', '', 'GRAN TOTAL:', grandTotal]);
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    
+    // Estilos y anchos de columna
+    ws['!cols'] = [
+      { wch: 12 }, // Fecha
+      { wch: 10 }, // Recibo
+      { wch: 40 }, // Concepto
+      { wch: 20 }, // Categoría
+      { wch: 15 }  // Monto
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Detalle de Movimientos');
+    XLSX.writeFile(wb, `Detalle_Movimientos_${startDate}_${endDate}.xlsx`);
+  };
+
+  const exportToPDF = async () => {
+    const { jsPDF } = await import('jspdf');
+    const autoTable = (await import('jspdf-autotable')).default;
+    
+    const doc = new jsPDF();
+    
+    // Título
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('REPORTE DE DETALLE DE MOVIMIENTOS', 105, 15, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Del ${formatDate(startDate)} al ${formatDate(endDate)}`, 105, 22, { align: 'center' });
+
+    let yPos = 30;
+
+    groupedData.forEach((personGroup, personIndex) => {
+      // Nueva página si es necesario
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      // Persona
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(102, 126, 234);
+      doc.rect(14, yPos, 182, 7, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.text(`${personGroup.person}`, 16, yPos + 5);
+      doc.setTextColor(0, 0, 0);
+      yPos += 10;
+
+      personGroup.categories.forEach((catGroup) => {
+        // Categoría
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setFillColor(200, 200, 200);
+        doc.rect(14, yPos, 182, 6, 'F');
+        doc.text(`  ${catGroup.category}`, 16, yPos + 4);
+        yPos += 8;
+
+        // Tabla de movimientos
+        const tableData = catGroup.movements.map(mov => [
+          formatDate(mov.date),
+          mov.voucher_number,
+          mov.notes || '-',
+          formatCurrency(mov.amount)
+        ]);
+
+        (doc as any).autoTable({
+          startY: yPos,
+          head: [['Fecha', 'Recibo', 'Concepto', 'Monto']],
+          body: tableData,
+          theme: 'striped',
+          headStyles: { fillColor: [118, 75, 162], fontSize: 9 },
+          styles: { fontSize: 8, cellPadding: 2 },
+          columnStyles: {
+            0: { cellWidth: 25 },
+            1: { cellWidth: 25 },
+            2: { cellWidth: 90 },
+            3: { cellWidth: 30, halign: 'right' }
+          }
+        });
+
+        yPos = (doc as any).lastAutoTable.finalY + 2;
+
+        // Subtotal de categoría
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Subtotal ${catGroup.category}:`, 160, yPos, { align: 'right' });
+        doc.text(formatCurrency(catGroup.subtotal), 190, yPos, { align: 'right' });
+        yPos += 6;
+      });
+
+      // Total por persona
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(220, 220, 220);
+      doc.rect(130, yPos, 66, 6, 'F');
+      doc.text(`TOTAL ${personGroup.person}:`, 160, yPos + 4, { align: 'right' });
+      doc.text(formatCurrency(personGroup.total), 190, yPos + 4, { align: 'right' });
+      yPos += 12;
+    });
+
+    // Gran total
+    if (yPos > 270) {
+      doc.addPage();
+      yPos = 20;
+    }
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(102, 126, 234);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(130, yPos, 66, 8, 'F');
+    doc.text('GRAN TOTAL:', 160, yPos + 5.5, { align: 'right' });
+    doc.text(formatCurrency(grandTotal), 190, yPos + 5.5, { align: 'right' });
+
+    doc.save(`Detalle_Movimientos_${startDate}_${endDate}.pdf`);
   };
 
   const formatCurrency = (amount: number) => {
@@ -89,10 +281,6 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
       month: 'short', 
       year: 'numeric' 
     });
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   return (
@@ -235,7 +423,7 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
                 border: '1px solid rgba(0, 229, 255, 0.2)'
               }}>
                 <div style={{ fontSize: '0.9rem', color: 'var(--gray-600)', lineHeight: '1.6' }}>
-                  💡 <strong>Tip:</strong> Selecciona el rango de fechas para ver un reporte detallado de todos los movimientos registrados en ese período.
+                  💡 <strong>Tip:</strong> El reporte se generará agrupado por persona y categoría, con subtotales y gran total.
                 </div>
               </div>
             </div>
@@ -265,179 +453,173 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
                         Del {formatDate(startDate)} al {formatDate(endDate)}
                       </p>
                     </div>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handlePrint}
+                    <div style={{ display: 'flex', gap: '0.8rem' }}>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={exportToPDF}
+                        style={{
+                          padding: '0.6rem 1.2rem',
+                          background: 'rgba(255, 23, 68, 0.9)',
+                          backdropFilter: 'blur(10px)',
+                          color: 'white',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          borderRadius: '8px',
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📄 PDF
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={exportToExcel}
+                        style={{
+                          padding: '0.6rem 1.2rem',
+                          background: 'rgba(0, 230, 118, 0.9)',
+                          backdropFilter: 'blur(10px)',
+                          color: 'white',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          borderRadius: '8px',
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📊 Excel
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Datos agrupados */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  {groupedData.map((personGroup, personIndex) => (
+                    <motion.div
+                      key={personIndex}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: personIndex * 0.1 }}
                       style={{
-                        padding: '0.6rem 1.2rem',
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        backdropFilter: 'blur(10px)',
-                        color: 'white',
-                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                        borderRadius: '8px',
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        cursor: 'pointer'
+                        background: 'white',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                        border: '1px solid rgba(0, 0, 0, 0.05)',
+                        marginBottom: '1.5rem'
                       }}
                     >
-                      🖨️ Imprimir
-                    </motion.button>
-                  </div>
+                      {/* Persona Header */}
+                      <div style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        padding: '1rem 1.5rem',
+                        color: 'white'
+                      }}>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: '700' }}>
+                          👤 {personGroup.person}
+                        </h4>
+                      </div>
+
+                      {/* Categorías */}
+                      {personGroup.categories.map((catGroup, catIndex) => (
+                        <div key={catIndex} style={{ padding: '1rem 1.5rem', borderBottom: catIndex < personGroup.categories.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            marginBottom: '0.8rem',
+                            padding: '0.6rem',
+                            background: 'rgba(102, 126, 234, 0.05)',
+                            borderRadius: '8px'
+                          }}>
+                            <span style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              background: catGroup.color || '#4da6ff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '1rem'
+                            }}>
+                              {catGroup.icon || '📦'}
+                            </span>
+                            <span style={{ fontSize: '1rem', fontWeight: '600', flex: 1 }}>
+                              {catGroup.category}
+                            </span>
+                            <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--primary-blue)' }}>
+                              {formatCurrency(catGroup.subtotal)}
+                            </span>
+                          </div>
+
+                          {/* Movimientos de la categoría */}
+                          <div style={{ paddingLeft: '1rem' }}>
+                            {catGroup.movements.map((mov, movIndex) => (
+                              <div
+                                key={mov.id}
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: '100px 90px 1fr 120px',
+                                  gap: '1rem',
+                                  padding: '0.6rem 0',
+                                  borderBottom: movIndex < catGroup.movements.length - 1 ? '1px dashed rgba(0,0,0,0.05)' : 'none',
+                                  fontSize: '0.85rem'
+                                }}
+                              >
+                                <div>{formatDate(mov.date)}</div>
+                                <div style={{ fontFamily: 'monospace', fontWeight: '600' }}>
+                                  {mov.voucher_number}
+                                </div>
+                                <div style={{ color: 'var(--gray-600)' }}>
+                                  {mov.notes || '-'}
+                                </div>
+                                <div style={{ textAlign: 'right', fontWeight: '600', color: 'var(--primary-blue)' }}>
+                                  {formatCurrency(mov.amount)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Total por persona */}
+                      <div style={{
+                        background: 'rgba(102, 126, 234, 0.1)',
+                        padding: '1rem 1.5rem',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <span style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--primary-blue)' }}>
+                          TOTAL {personGroup.person}
+                        </span>
+                        <span style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--primary-blue)' }}>
+                          {formatCurrency(personGroup.total)}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
 
-                {/* Estadísticas */}
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                  gap: '1rem',
+                {/* Gran Total */}
+                <div style={{
+                  background: 'linear-gradient(135deg, #FF1744 0%, #D32F2F 100%)',
+                  padding: '1.5rem',
+                  borderRadius: '12px',
+                  color: 'white',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                   marginBottom: '1.5rem'
                 }}>
-                  <motion.div
-                    whileHover={{ scale: 1.03, y: -2 }}
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(25, 118, 210, 0.1) 100%)',
-                      padding: '1.2rem',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(0, 229, 255, 0.2)'
-                    }}
-                  >
-                    <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginBottom: '0.5rem' }}>
-                      💰 Total
-                    </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: '700', color: 'var(--primary-blue)' }}>
-                      {formatCurrency(stats.total)}
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    whileHover={{ scale: 1.03, y: -2 }}
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(124, 77, 255, 0.1) 0%, rgba(102, 126, 234, 0.1) 100%)',
-                      padding: '1.2rem',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(124, 77, 255, 0.2)'
-                    }}
-                  >
-                    <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginBottom: '0.5rem' }}>
-                      📋 Movimientos
-                    </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: '700', color: '#7C4DFF' }}>
-                      {stats.count}
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    whileHover={{ scale: 1.03, y: -2 }}
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(0, 230, 118, 0.1) 0%, rgba(0, 200, 83, 0.1) 100%)',
-                      padding: '1.2rem',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(0, 230, 118, 0.2)'
-                    }}
-                  >
-                    <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginBottom: '0.5rem' }}>
-                      📊 Promedio
-                    </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: '700', color: '#00E676' }}>
-                      {formatCurrency(stats.average)}
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    whileHover={{ scale: 1.03, y: -2 }}
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(255, 23, 68, 0.1) 0%, rgba(211, 47, 47, 0.1) 100%)',
-                      padding: '1.2rem',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255, 23, 68, 0.2)'
-                    }}
-                  >
-                    <div style={{ fontSize: '0.85rem', color: 'var(--gray-600)', marginBottom: '0.5rem' }}>
-                      ⬆️ Mayor
-                    </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: '700', color: '#FF1744' }}>
-                      {formatCurrency(stats.max)}
-                    </div>
-                  </motion.div>
-                </div>
-
-                {/* Tabla de movimientos */}
-                <div style={{
-                  background: 'white',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                  border: '1px solid rgba(0, 0, 0, 0.05)'
-                }}>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-                          <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: '600' }}>Fecha</th>
-                          <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: '600' }}>Recibo</th>
-                          <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: '600' }}>Concepto</th>
-                          <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: '600' }}>Categoría</th>
-                          <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: '600' }}>Corresponde a</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', fontSize: '0.85rem', fontWeight: '600' }}>Monto</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {movements.map((mov, index) => (
-                          <motion.tr
-                            key={mov.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.02 }}
-                            style={{
-                              borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
-                              background: index % 2 === 0 ? 'rgba(0, 0, 0, 0.01)' : 'white'
-                            }}
-                            whileHover={{ background: 'rgba(102, 126, 234, 0.05)' }}
-                          >
-                            <td style={{ padding: '1rem', fontSize: '0.9rem' }}>
-                              {formatDate(mov.date)}
-                            </td>
-                            <td style={{ padding: '1rem', fontSize: '0.9rem', fontFamily: 'monospace', fontWeight: '600' }}>
-                              {mov.voucher_number}
-                            </td>
-                            <td style={{ padding: '1rem', fontSize: '0.9rem' }}>
-                              {mov.notes || '-'}
-                            </td>
-                            <td style={{ padding: '1rem', fontSize: '0.9rem' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span style={{
-                                  width: '28px',
-                                  height: '28px',
-                                  borderRadius: '50%',
-                                  background: mov.category_color || '#4da6ff',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '0.9rem'
-                                }}>
-                                  {mov.category_icon || '📦'}
-                                </span>
-                                {mov.category_name || 'Sin categoría'}
-                              </div>
-                            </td>
-                            <td style={{ padding: '1rem', fontSize: '0.9rem' }}>
-                              {mov.correspondent_to || '-'}
-                            </td>
-                            <td style={{ 
-                              padding: '1rem', 
-                              fontSize: '1rem', 
-                              fontWeight: '700',
-                              textAlign: 'right',
-                              color: 'var(--primary-blue)'
-                            }}>
-                              {formatCurrency(mov.amount)}
-                            </td>
-                          </motion.tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <span style={{ fontSize: '1.2rem', fontWeight: '700' }}>
+                    💰 GRAN TOTAL
+                  </span>
+                  <span style={{ fontSize: '1.5rem', fontWeight: '700' }}>
+                    {formatCurrency(grandTotal)}
+                  </span>
                 </div>
 
                 {/* Botones de acción */}
@@ -492,4 +674,3 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
     </>
   );
 }
-
