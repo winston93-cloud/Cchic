@@ -181,7 +181,7 @@ export default function ExecutorForm({ onClose, onSave }: ExecutorFormProps) {
         exit={{ scale: 0.9, opacity: 0 }}
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '500px', maxHeight: '85vh', overflowY: 'auto' }}
+        style={{ maxWidth: '500px', maxHeight: '75vh', overflowY: 'auto' }}
       >
         {/* Notificación */}
         <AnimatePresence>
@@ -210,16 +210,16 @@ export default function ExecutorForm({ onClose, onSave }: ExecutorFormProps) {
         </AnimatePresence>
 
         <div className="modal-header">
-          <h2 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            👔 Ejecutor del Gasto
+          <h2 style={{ fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            👔 Ejecutor
           </h2>
           <button className="close-btn" onClick={onClose}>✕</button>
         </div>
 
-        <form onSubmit={handleSave} style={{ padding: '1.2rem' }}>
+        <form onSubmit={handleSave} style={{ padding: '0.8rem 1.2rem 1rem' }}>
           {/* Búsqueda Autocompletada */}
-          <div style={{ marginBottom: '1.2rem', position: 'relative' }}>
-            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>
+          <div style={{ marginBottom: '0.8rem', position: 'relative' }}>
+            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.3rem', display: 'block' }}>
               🔍 Buscar Ejecutor
             </label>
             <input
@@ -282,8 +282,8 @@ export default function ExecutorForm({ onClose, onSave }: ExecutorFormProps) {
           </div>
 
           {/* Nombre */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>
+          <div style={{ marginBottom: '0.8rem' }}>
+            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.3rem', display: 'block' }}>
               👤 Nombre *
             </label>
             <input
@@ -298,9 +298,9 @@ export default function ExecutorForm({ onClose, onSave }: ExecutorFormProps) {
           </div>
 
           {/* Identificación (readonly) */}
-          <div style={{ marginBottom: '1.2rem' }}>
-            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>
-              🆔 Identificación (generada automáticamente)
+          <div style={{ marginBottom: '0.8rem' }}>
+            <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.3rem', display: 'block' }}>
+              🆔 Identificación
             </label>
             <input
               type="text"
@@ -319,9 +319,9 @@ export default function ExecutorForm({ onClose, onSave }: ExecutorFormProps) {
           {/* Botones */}
           <div style={{ 
             display: 'flex', 
-            gap: '0.8rem', 
-            marginTop: '1.5rem',
-            paddingTop: '1rem',
+            gap: '0.6rem', 
+            marginTop: '1rem',
+            paddingTop: '0.8rem',
             borderTop: '1px solid rgba(0, 0, 0, 0.1)'
           }}>
             <motion.button
@@ -396,8 +396,8 @@ export default function ExecutorForm({ onClose, onSave }: ExecutorFormProps) {
             onClick={onClose}
             style={{
               width: '100%',
-              padding: '0.7rem',
-              marginTop: '0.8rem',
+              padding: '0.65rem',
+              marginTop: '0.6rem',
               background: 'rgba(0, 0, 0, 0.05)',
               color: 'var(--gray-700)',
               border: '1px solid rgba(0, 0, 0, 0.1)',
