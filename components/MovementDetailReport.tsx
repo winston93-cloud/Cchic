@@ -107,62 +107,70 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
   };
 
   const exportToExcel = async () => {
-    const XLSX = (await import('xlsx')).default;
-    
-    const data: any[] = [];
-    
-    // Título
-    data.push(['REPORTE DE DETALLE DE MOVIMIENTOS']);
-    data.push([`Del ${formatDate(startDate)} al ${formatDate(endDate)}`]);
-    data.push([]);
+    try {
+      const XLSX = await import('xlsx');
+      
+      const data: any[] = [];
+      
+      // Título
+      data.push(['REPORTE DE DETALLE DE MOVIMIENTOS']);
+      data.push([`Del ${formatDate(startDate)} al ${formatDate(endDate)}`]);
+      data.push([]);
+      data.push([]);
 
-    groupedData.forEach((personGroup) => {
-      // Persona
-      data.push([`PERSONA: ${personGroup.person}`, '', '', '', '']);
-      data.push(['Fecha', 'Recibo', 'Concepto', 'Categoría', 'Monto']);
+      groupedData.forEach((personGroup) => {
+        // Persona (destacada)
+        data.push([`PERSONA: ${personGroup.person}`, '', '', '', '']);
+        data.push([]);
 
-      personGroup.categories.forEach((catGroup) => {
-        // Categoría
-        data.push([`  ${catGroup.category}`, '', '', '', '']);
-        
-        // Movimientos
-        catGroup.movements.forEach((mov) => {
-          data.push([
-            formatDate(mov.date),
-            mov.voucher_number,
-            mov.notes || '-',
-            catGroup.category,
-            mov.amount
-          ]);
+        personGroup.categories.forEach((catGroup) => {
+          // Categoría
+          data.push([`  📁 ${catGroup.category}`, '', '', '', `${formatCurrency(catGroup.subtotal)}`]);
+          data.push(['    Fecha', 'Recibo', 'Concepto', '', 'Monto']);
+          
+          // Movimientos
+          catGroup.movements.forEach((mov) => {
+            data.push([
+              '    ' + formatDate(mov.date),
+              mov.voucher_number,
+              mov.notes || '-',
+              '',
+              mov.amount
+            ]);
+          });
+
+          // Subtotal de categoría
+          data.push(['', '', '', `Subtotal ${catGroup.category}:`, catGroup.subtotal]);
+          data.push([]);
         });
 
-        // Subtotal de categoría
-        data.push(['', '', '', `Subtotal ${catGroup.category}:`, catGroup.subtotal]);
+        // Total por persona
+        data.push(['', '', '', `TOTAL ${personGroup.person}:`, personGroup.total]);
+        data.push([]);
         data.push([]);
       });
 
-      // Total por persona
-      data.push(['', '', '', `TOTAL ${personGroup.person}:`, personGroup.total]);
-      data.push([]);
-    });
+      // Gran total
+      data.push(['', '', '', 'GRAN TOTAL:', grandTotal]);
 
-    // Gran total
-    data.push(['', '', '', 'GRAN TOTAL:', grandTotal]);
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      
+      // Estilos y anchos de columna
+      ws['!cols'] = [
+        { wch: 15 }, // Fecha
+        { wch: 12 }, // Recibo
+        { wch: 50 }, // Concepto
+        { wch: 25 }, // Categoría/Etiquetas
+        { wch: 15 }  // Monto
+      ];
 
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    
-    // Estilos y anchos de columna
-    ws['!cols'] = [
-      { wch: 12 }, // Fecha
-      { wch: 10 }, // Recibo
-      { wch: 40 }, // Concepto
-      { wch: 20 }, // Categoría
-      { wch: 15 }  // Monto
-    ];
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Detalle de Movimientos');
-    XLSX.writeFile(wb, `Detalle_Movimientos_${startDate}_${endDate}.xlsx`);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Detalle');
+      XLSX.writeFile(wb, `Detalle_Movimientos_${startDate}_${endDate}.xlsx`);
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+      alert('Error al exportar a Excel');
+    }
   };
 
   const exportToPDF = async () => {
@@ -263,7 +271,8 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
     doc.text('GRAN TOTAL:', 160, yPos + 5.5, { align: 'right' });
     doc.text(formatCurrency(grandTotal), 190, yPos + 5.5, { align: 'right' });
 
-    doc.save(`Detalle_Movimientos_${startDate}_${endDate}.pdf`);
+    // Abrir PDF en nueva ventana/pestaña
+    doc.output('dataurlnewwindow', { filename: `Detalle_Movimientos_${startDate}_${endDate}.pdf` });
   };
 
   const formatCurrency = (amount: number) => {
