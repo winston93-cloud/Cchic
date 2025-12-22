@@ -29,6 +29,7 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<CustomPeriod | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
   const [filterYear, setFilterYear] = useState<number>(new Date().getFullYear());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   const [formData, setFormData] = useState({
     year: new Date().getFullYear(),
@@ -174,10 +175,15 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (!selectedPeriod?.id) return;
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setShowDeleteConfirm(false);
     
-    if (!confirm('¿Eliminar este período personalizado? Se usarán los límites naturales del mes.')) return;
+    if (!selectedPeriod?.id) return;
     
     try {
       const { error } = await supabase
@@ -433,7 +439,7 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       type="button"
-                      onClick={handleDelete}
+                      onClick={handleDeleteClick}
                       style={{
                         flex: 1,
                         padding: '0.65rem',
@@ -570,6 +576,110 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Modal de confirmación de eliminación */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.75)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 2000,
+              padding: '1rem'
+            }}
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '2rem',
+                maxWidth: '450px',
+                width: '100%',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+              }}
+            >
+              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗑️</div>
+                <h3 style={{ 
+                  fontSize: '1.4rem', 
+                  marginBottom: '0.5rem',
+                  color: '#FF1744',
+                  fontWeight: '700'
+                }}>
+                  ¿Eliminar período?
+                </h3>
+                <p style={{ 
+                  fontSize: '0.95rem', 
+                  color: 'var(--gray-600)',
+                  lineHeight: '1.5'
+                }}>
+                  Se eliminarán los límites personalizados de<br />
+                  <strong>{selectedPeriod && MONTHS[selectedPeriod.month - 1]} {selectedPeriod?.year}</strong>
+                  <br /><br />
+                  Se usarán los límites naturales del mes.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.8rem' }}>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowDeleteConfirm(false)}
+                  style={{
+                    flex: 1,
+                    padding: '0.8rem',
+                    background: 'rgba(0, 0, 0, 0.05)',
+                    color: 'var(--gray-700)',
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                    borderRadius: '10px',
+                    fontSize: '0.95rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Cancelar
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleConfirmDelete}
+                  style={{
+                    flex: 1,
+                    padding: '0.8rem',
+                    background: 'linear-gradient(135deg, #FF1744 0%, #D32F2F 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '0.95rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Aceptar
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
