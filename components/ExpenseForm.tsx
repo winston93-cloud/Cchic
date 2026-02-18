@@ -586,21 +586,26 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
             </div>
           </div>
 
-          {/* Subcategoría - solo si hay categoría seleccionada */}
-          {selectedCategory && (
-            <div className="form-group" ref={subcategorySearchRef} style={{ position: 'relative' }}>
-              <label className="form-label">📂 Subcategoría</label>
-              <input
-                type="text"
-                className="form-input"
-                value={subcategorySearchQuery}
-                onChange={(e) => handleSubcategorySearchChange(e.target.value)}
-                onFocus={() => setShowSubcategorySuggestions(true)}
-                placeholder="Buscar subcategoría..."
-                autoComplete="off"
-              />
+          {/* Subcategoría - siempre visible; habilitado solo con categoría seleccionada */}
+          <div className="form-group" ref={subcategorySearchRef} style={{ position: 'relative' }}>
+            <label className="form-label">📂 Subcategoría</label>
+            <input
+              type="text"
+              className="form-input"
+              value={subcategorySearchQuery}
+              onChange={(e) => selectedCategory && handleSubcategorySearchChange(e.target.value)}
+              onFocus={() => selectedCategory && setShowSubcategorySuggestions(true)}
+              placeholder={selectedCategory ? 'Buscar subcategoría...' : 'Primero selecciona una categoría'}
+              autoComplete="off"
+              disabled={!selectedCategory}
+              style={{
+                opacity: selectedCategory ? 1 : 0.75,
+                cursor: selectedCategory ? 'text' : 'not-allowed',
+                background: selectedCategory ? undefined : 'var(--gray-50)'
+              }}
+            />
               <AnimatePresence>
-                {showSubcategorySuggestions && (
+                {selectedCategory && showSubcategorySuggestions && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -714,7 +719,6 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
                 </motion.div>
               )}
             </div>
-          )}
 
           <div className="form-group">
             <label className="form-label">
