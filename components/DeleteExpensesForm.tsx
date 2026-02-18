@@ -48,7 +48,8 @@ export default function DeleteExpensesForm({ onClose, onUpdate }: DeleteExpenses
         .from('expenses')
         .select(`
           *,
-          categories (name, icon, color)
+          categories (name, icon, color),
+          subcategories (name, icon, color)
         `)
         .eq('status', 'active')
         .gte('date', startDate)
@@ -77,6 +78,9 @@ export default function DeleteExpensesForm({ onClose, onUpdate }: DeleteExpenses
         category_name: exp.categories?.name,
         category_icon: exp.categories?.icon,
         category_color: exp.categories?.color,
+        subcategory_name: exp.subcategories?.name,
+        subcategory_icon: exp.subcategories?.icon,
+        subcategory_color: exp.subcategories?.color,
       }));
 
       setExpenses(formattedExpenses);
@@ -330,10 +334,18 @@ export default function DeleteExpensesForm({ onClose, onUpdate }: DeleteExpenses
                         <td style={{ padding: '0.75rem' }}>{expense.voucher_number || '-'}</td>
                         <td style={{ padding: '0.75rem' }}>{expense.executor}</td>
                         <td style={{ padding: '0.75rem' }}>
-                          {expense.category_icon && (
-                            <span style={{ marginRight: '0.5rem' }}>{expense.category_icon}</span>
-                          )}
-                          {expense.category_name || '-'}
+                          <span style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                            <span>
+                              {expense.category_icon && <span style={{ marginRight: '0.35rem' }}>{expense.category_icon}</span>}
+                              {expense.category_name || '-'}
+                            </span>
+                            {expense.subcategory_name && (
+                              <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                                {expense.subcategory_icon && <span style={{ marginRight: '0.35rem' }}>{expense.subcategory_icon}</span>}
+                                {expense.subcategory_name}
+                              </span>
+                            )}
+                          </span>
                         </td>
                         <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600, color: '#EF4444' }}>
                           {formatCurrency(expense.amount)}

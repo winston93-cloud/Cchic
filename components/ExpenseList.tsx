@@ -72,13 +72,26 @@ export default function ExpenseList({ expenses, onEdit, onDelete, formatCurrency
               </td>
               <td>
                 {expense.category_name ? (
-                  <span 
-                    className="badge badge-primary" 
-                    style={{ 
-                      background: expense.category_color || 'var(--gradient-primary)' 
-                    }}
-                  >
-                    {expense.category_icon} {expense.category_name}
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span 
+                      className="badge badge-primary" 
+                      style={{ background: expense.category_color || 'var(--gradient-primary)', alignSelf: 'flex-start' }}
+                    >
+                      {expense.category_icon} {expense.category_name}
+                    </span>
+                    {expense.subcategory_name && (
+                      <span 
+                        className="badge badge-primary" 
+                        style={{ 
+                          background: expense.subcategory_color || 'var(--gray-400)', 
+                          fontSize: '0.8rem',
+                          alignSelf: 'flex-start',
+                          opacity: 0.95
+                        }}
+                      >
+                        {expense.subcategory_icon} {expense.subcategory_name}
+                      </span>
+                    )}
                   </span>
                 ) : (
                   <span className="badge badge-secondary">Sin categoría</span>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Expense, Category, Person } from '@/types';
+import { Expense, Category, Person, Subcategory } from '@/types';
 import { supabase } from '@/lib/supabase';
 
 interface Executor {
@@ -20,15 +20,19 @@ interface ExpenseFormProps {
 
 export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
   const [executors, setExecutors] = useState<Executor[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<Subcategory | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [selectedExecutor, setSelectedExecutor] = useState<Executor | null>(null);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [subcategorySearchQuery, setSubcategorySearchQuery] = useState('');
   const [personSearchQuery, setPersonSearchQuery] = useState('');
   const [executorSearchQuery, setExecutorSearchQuery] = useState('');
   const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
+  const [showSubcategorySuggestions, setShowSubcategorySuggestions] = useState(false);
   const [showPersonSuggestions, setShowPersonSuggestions] = useState(false);
   const [showExecutorSuggestions, setShowExecutorSuggestions] = useState(false);
   const [formData, setFormData] = useState({
@@ -36,51 +40,52 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
     correspondent_to: expense?.correspondent_to || '',
     executor: expense?.executor || '',
     category_id: expense?.category_id || '',
+    subcategory_id: expense?.subcategory_id || '',
     amount: expense?.amount || '',
     voucher_number: expense?.voucher_number || '',
     notes: expense?.notes || '',
   });
 
   const categorySearchRef = useRef<HTMLDivElement>(null);
+  const subcategorySearchRef = useRef<HTMLDivElement>(null);
   const personSearchRef = useRef<HTMLDivElement>(null);
   const executorSearchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchCategories();
+    fetchSubcategories();
     fetchPersons();
     fetchExecutors();
-    
-    // Si estamos editando, cargar la categoría, persona y ejecutor seleccionados
-    if (expense) {
-      if (expense.category_id) {
-        const cat = categories.find(c => c.id === expense.category_id);
-        if (cat) {
-          setSelectedCategory(cat);
-          setCategorySearchQuery(cat.name);
-        }
-      }
-      if (expense.correspondent_to) {
-        setPersonSearchQuery(expense.correspondent_to);
-      }
-      if (expense.executor) {
-        setExecutorSearchQuery(expense.executor);
+  }, []);
+
+  // Al tener expense y subcategories cargados, restaurar categoría y subcategoría
+  useEffect(() => {
+    if (!expense) return;
+    if (expense.category_id && categories.length) {
+      const cat = categories.find(c => c.id === expense.category_id);
+      if (cat) {
+        setSelectedCategory(cat);
+        setCategorySearchQuery(cat.name);
       }
     }
-  }, []);
+    if (expense.subcategory_id && subcategories.length) {
+      const sub = subcategories.find(s => s.id === expense.subcategory_id);
+      if (sub) {
+        setSelectedSubcategory(sub);
+        setSubcategorySearchQuery(sub.name);
+      }
+    }
+    if (expense.correspondent_to) setPersonSearchQuery(expense.correspondent_to);
+    if (expense.executor) setExecutorSearchQuery(expense.executor);
+  }, [expense, categories.length, subcategories.length]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (categorySearchRef.current && !categorySearchRef.current.contains(event.target as Node)) {
-        setShowCategorySuggestions(false);
-      }
-      if (personSearchRef.current && !personSearchRef.current.contains(event.target as Node)) {
-        setShowPersonSuggestions(false);
-      }
-      if (executorSearchRef.current && !executorSearchRef.current.contains(event.target as Node)) {
-        setShowExecutorSuggestions(false);
-      }
+      if (categorySearchRef.current && !categorySearchRef.current.contains(event.target as Node)) setShowCategorySuggestions(false);
+      if (subcategorySearchRef.current && !subcategorySearchRef.current.contains(event.target as Node)) setShowSubcategorySuggestions(false);
+      if (personSearchRef.current && !personSearchRef.current.contains(event.target as Node)) setShowPersonSuggestions(false);
+      if (executorSearchRef.current && !executorSearchRef.current.contains(event.target as Node)) setShowExecutorSuggestions(false);
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -95,15 +100,25 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-
+      const { data, error } = await supabase.from('categories').select('*').order('name');
       if (error) throw error;
       setCategories(data || []);
     } catch (error) {
       console.error('Error al cargar categorías:', error);
+    }
+  };
+
+  const fetchSubcategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('subcategories')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+      if (error) throw error;
+      setSubcategories(data || []);
+    } catch (error) {
+      console.error('Error al cargar subcategorías:', error);
     }
   };
 
@@ -143,6 +158,14 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
     return cat.name?.toLowerCase().includes(search);
   });
 
+  // Subcategorías solo de la categoría seleccionada
+  const filteredSubcategories = subcategories.filter(sub => {
+    if (selectedCategory && sub.category_id !== selectedCategory.id) return false;
+    if (!subcategorySearchQuery.trim()) return true;
+    const search = subcategorySearchQuery.toLowerCase().trim();
+    return sub.name?.toLowerCase().includes(search);
+  });
+
   const filteredPersons = persons.filter(person => {
     if (!personSearchQuery.trim()) return true;
     const search = personSearchQuery.toLowerCase().trim();
@@ -168,8 +191,26 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
   const handleSelectCategory = (category: Category) => {
     setSelectedCategory(category);
     setCategorySearchQuery(category.name);
-    setFormData(prev => ({ ...prev, category_id: category.id.toString() }));
+    setFormData(prev => ({ ...prev, category_id: category.id.toString(), subcategory_id: '' }));
+    setSelectedSubcategory(null);
+    setSubcategorySearchQuery('');
     setShowCategorySuggestions(false);
+  };
+
+  const handleSubcategorySearchChange = (value: string) => {
+    setSubcategorySearchQuery(value);
+    setShowSubcategorySuggestions(value.trim().length > 0);
+    if (value.trim().length === 0) {
+      setSelectedSubcategory(null);
+      setFormData(prev => ({ ...prev, subcategory_id: '' }));
+    }
+  };
+
+  const handleSelectSubcategory = (sub: Subcategory) => {
+    setSelectedSubcategory(sub);
+    setSubcategorySearchQuery(sub.name);
+    setFormData(prev => ({ ...prev, subcategory_id: sub.id.toString() }));
+    setShowSubcategorySuggestions(false);
   };
 
   const handleSelectPerson = (person: Person) => {
@@ -197,6 +238,7 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
       ...formData,
       amount: parseFloat(formData.amount as string),
       category_id: formData.category_id ? parseInt(formData.category_id as string) : undefined,
+      subcategory_id: formData.subcategory_id ? parseInt(formData.subcategory_id as string) : undefined,
     });
   };
 
@@ -516,7 +558,9 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
                       e.stopPropagation();
                       setSelectedCategory(null);
                       setCategorySearchQuery('');
-                      setFormData(prev => ({ ...prev, category_id: '' }));
+                      setFormData(prev => ({ ...prev, category_id: '', subcategory_id: '' }));
+                      setSelectedSubcategory(null);
+                      setSubcategorySearchQuery('');
                     }}
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
@@ -541,6 +585,136 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
               )}
             </div>
           </div>
+
+          {/* Subcategoría - solo si hay categoría seleccionada */}
+          {selectedCategory && (
+            <div className="form-group" ref={subcategorySearchRef} style={{ position: 'relative' }}>
+              <label className="form-label">📂 Subcategoría</label>
+              <input
+                type="text"
+                className="form-input"
+                value={subcategorySearchQuery}
+                onChange={(e) => handleSubcategorySearchChange(e.target.value)}
+                onFocus={() => setShowSubcategorySuggestions(true)}
+                placeholder="Buscar subcategoría..."
+                autoComplete="off"
+              />
+              <AnimatePresence>
+                {showSubcategorySuggestions && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      border: '1px solid var(--gray-300)',
+                      borderRadius: '12px',
+                      boxShadow: 'var(--shadow-lg)',
+                      maxHeight: '250px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      marginTop: '0.5rem'
+                    }}
+                  >
+                    {filteredSubcategories.length > 0 ? (
+                      filteredSubcategories.map((sub) => (
+                        <motion.div
+                          key={sub.id}
+                          onClick={() => handleSelectSubcategory(sub)}
+                          style={{
+                            padding: '0.75rem 1rem',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid var(--gray-200)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem'
+                          }}
+                          whileHover={{ background: 'var(--gray-50)' }}
+                        >
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            background: sub.color || '#4da6ff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1.25rem',
+                            flexShrink: 0
+                          }}>
+                            {sub.icon || '📦'}
+                          </div>
+                          <div style={{ fontWeight: 600, color: 'var(--primary-blue)' }}>{sub.name}</div>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div style={{ padding: '1rem', color: 'var(--gray-500)', textAlign: 'center' }}>
+                        No hay subcategorías para esta categoría
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {selectedSubcategory && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: '0.5rem 0.75rem',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    color: 'white',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  <div style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: selectedSubcategory.color || '#4da6ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem'
+                  }}>
+                    {selectedSubcategory.icon || '📦'}
+                  </div>
+                  <span style={{ fontWeight: 600 }}>{selectedSubcategory.name}</span>
+                  <motion.button
+                    type="button"
+                    onClick={() => {
+                      setSelectedSubcategory(null);
+                      setSubcategorySearchQuery('');
+                      setFormData(prev => ({ ...prev, subcategory_id: '' }));
+                    }}
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                    style={{
+                      background: 'rgba(255,255,255,0.2)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '24px',
+                      height: '24px',
+                      color: 'white',
+                      fontSize: '1.25rem',
+                      cursor: 'pointer',
+                      marginLeft: 'auto'
+                    }}
+                  >
+                    ×
+                  </motion.button>
+                </motion.div>
+              )}
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label">

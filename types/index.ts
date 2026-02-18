@@ -7,6 +7,10 @@ export interface Expense {
   category_name?: string;
   category_icon?: string;
   category_color?: string;
+  subcategory_id?: number;
+  subcategory_name?: string;
+  subcategory_icon?: string;
+  subcategory_color?: string;
   amount: number;
   voucher_number?: string;
   notes?: string;
@@ -50,6 +54,18 @@ export interface Category {
   color?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface Subcategory {
+  id: number;
+  category_id: number;
+  name: string;
+  icon?: string;
+  color?: string;
+  active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  categories?: { name: string; icon?: string; color?: string };
 }
 
 export interface Balance {

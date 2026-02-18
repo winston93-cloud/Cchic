@@ -7,6 +7,7 @@ import ExpenseList from '@/components/ExpenseList';
 import ReportsPanel from '@/components/ReportsPanel';
 import PersonForm from '@/components/PersonForm';
 import CategoryForm from '@/components/CategoryForm';
+import SubcategoryForm from '@/components/SubcategoryForm';
 import ExecutorForm from '@/components/ExecutorForm';
 import PeriodForm from '@/components/PeriodForm';
 import FundForm from '@/components/FundForm';
@@ -25,6 +26,7 @@ export default function Home() {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showPersonForm, setShowPersonForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [showSubcategoryForm, setShowSubcategoryForm] = useState(false);
   const [showExecutorForm, setShowExecutorForm] = useState(false);
   const [showPeriodForm, setShowPeriodForm] = useState(false);
   const [showFundForm, setShowFundForm] = useState(false);
@@ -81,7 +83,8 @@ export default function Home() {
         .from('expenses')
         .select(`
           *,
-          categories (name, icon, color)
+          categories (name, icon, color),
+          subcategories (name, icon, color)
         `)
         .eq('status', 'active')
         .gte('date', startDate)
@@ -96,6 +99,7 @@ export default function Home() {
         correspondent_to: exp.correspondent_to,
         executor: exp.executor,
         category_id: exp.category_id,
+        subcategory_id: exp.subcategory_id ?? undefined,
         amount: exp.amount,
         voucher_number: exp.voucher_number,
         notes: exp.notes,
@@ -105,6 +109,9 @@ export default function Home() {
         category_name: exp.categories?.name,
         category_icon: exp.categories?.icon,
         category_color: exp.categories?.color,
+        subcategory_name: exp.subcategories?.name,
+        subcategory_icon: exp.subcategories?.icon,
+        subcategory_color: exp.subcategories?.color,
       }));
 
       setExpenses(formattedExpenses);
@@ -305,6 +312,13 @@ export default function Home() {
                     }}>
                       <span className="dropdown-item-icon">🏷️</span>
                       Categorías
+                    </div>
+                    <div className="dropdown-item" onClick={() => {
+                      setShowSubcategoryForm(true);
+                      setShowRegistrosMenu(false);
+                    }}>
+                      <span className="dropdown-item-icon">📂</span>
+                      Subcategorías
                     </div>
                     <div className="dropdown-divider"></div>
                     <div className="dropdown-item" onClick={() => {
@@ -602,9 +616,12 @@ export default function Home() {
         )}
         {showCategoryForm && (
           <CategoryForm
-            onClose={() => {
-              setShowCategoryForm(false);
-            }}
+            onClose={() => setShowCategoryForm(false)}
+          />
+        )}
+        {showSubcategoryForm && (
+          <SubcategoryForm
+            onClose={() => setShowSubcategoryForm(false)}
           />
         )}
         {showExecutorForm && (
