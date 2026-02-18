@@ -70,9 +70,10 @@ export default function SubcategoryForm({ onClose }: SubcategoryFormProps) {
         .order('name');
       if (error) throw error;
       setSubcategories((data as SubcategoryWithCategory[]) || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar subcategorías:', error);
-      showNotification('❌ Error al cargar subcategorías');
+      const msg = error?.message?.includes('Missing') ? error.message : 'Error al cargar subcategorías. Revisa variables en Vercel.';
+      showNotification('❌ ' + msg);
     }
   };
 

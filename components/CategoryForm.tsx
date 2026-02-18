@@ -88,9 +88,10 @@ export default function CategoryForm({ onClose }: CategoryFormProps) {
       
       console.log('Categorías cargadas:', data);
       setCategories(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar categorías:', error);
-      alert('Error al cargar categorías. Verifica la consola para más detalles.');
+      const msg = error?.message?.includes('Missing') ? error.message : 'Error al cargar categorías. Revisa variables en Vercel.';
+      showNotification('❌ ' + msg);
     }
   };
 
@@ -137,7 +138,7 @@ export default function CategoryForm({ onClose }: CategoryFormProps) {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      alert('El nombre es requerido');
+      showNotification('❌ El nombre es requerido');
       return;
     }
 
@@ -175,11 +176,11 @@ export default function CategoryForm({ onClose }: CategoryFormProps) {
 
   const handleDelete = async () => {
     if (!selectedCategory) {
-      alert('Selecciona una categoría para eliminar');
+      showNotification('❌ Selecciona una categoría para eliminar');
       return;
     }
 
-    if (!confirm(`¿Estás seguro de eliminar la categoría "${selectedCategory.name}"?`)) {
+    if (!window.confirm(`¿Estás seguro de eliminar la categoría "${selectedCategory.name}"?`)) {
       return;
     }
 

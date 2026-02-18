@@ -83,9 +83,10 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
       
       console.log('Fondos cargados:', data);
       setFunds(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar fondos:', error);
-      showNotification('❌ Error al cargar aumentos de caja');
+      const msg = error?.message?.includes('Missing') ? error.message : 'Error al cargar aumentos de caja. Revisa variables en Vercel.';
+      showNotification('❌ ' + msg);
     }
   };
 
