@@ -85,7 +85,7 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
       setFunds(data || []);
     } catch (error) {
       console.error('Error al cargar fondos:', error);
-      showNotification('❌ Error al cargar fondos');
+      showNotification('❌ Error al cargar aumentos de caja');
     }
   };
 
@@ -206,7 +206,7 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
           .eq('id', selectedFund.id);
 
         if (error) throw error;
-        showNotification('✅ Reposición actualizada exitosamente');
+        showNotification('✅ Aumento de caja actualizado exitosamente');
       } else {
         // Crear nuevo
         const { error } = await supabase
@@ -214,25 +214,25 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
           .insert([fundData as any]);
 
         if (error) throw error;
-        showNotification('✅ Reposición creada exitosamente');
+        showNotification('✅ Aumento de caja creado exitosamente');
       }
 
       fetchFunds();
       onUpdate();
       handleNewRecord();
     } catch (error) {
-      console.error('Error al guardar reposición:', error);
-      showNotification('❌ Error al guardar la reposición');
+      console.error('Error al guardar aumento de caja:', error);
+      showNotification('❌ Error al guardar el aumento de caja');
     }
   };
 
   const handleDelete = async () => {
     if (!selectedFund) {
-      showNotification('❌ Selecciona una reposición para eliminar');
+      showNotification('❌ Selecciona un aumento de caja para eliminar');
       return;
     }
 
-    if (!confirm(`¿Estás seguro de eliminar esta reposición de $${selectedFund.amount}?`)) {
+    if (!confirm(`¿Estás seguro de eliminar este aumento de caja de $${selectedFund.amount}?`)) {
       return;
     }
 
@@ -244,13 +244,13 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
 
       if (error) throw error;
 
-      showNotification('✅ Reposición eliminada exitosamente');
+      showNotification('✅ Aumento de caja eliminado exitosamente');
       fetchFunds();
       onUpdate();
       handleNewRecord();
     } catch (error) {
-      console.error('Error al eliminar reposición:', error);
-      showNotification('❌ Error al eliminar la reposición');
+      console.error('Error al eliminar aumento de caja:', error);
+      showNotification('❌ Error al eliminar el aumento de caja');
     }
   };
 
@@ -300,7 +300,7 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
           style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}
         >
           <div className="modal-header" style={{ marginBottom: '1rem', paddingBottom: '0.75rem' }}>
-            <h2 className="modal-title" style={{ fontSize: '1.5rem' }}>💰 Reposición de Fondos</h2>
+            <h2 className="modal-title" style={{ fontSize: '1.5rem' }}>💰 Aumento de Caja</h2>
             <motion.button 
               className="modal-close" 
               onClick={onClose}
@@ -517,9 +517,9 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
 
             <div style={{ borderTop: '2px solid var(--gray-200)', marginTop: '0.75rem', paddingTop: '0.75rem' }}></div>
 
-            {/* Búsqueda de Reposiciones existentes */}
+            {/* Búsqueda de Aumentos de caja existentes */}
             <div className="form-group" ref={searchRef} style={{ position: 'relative', marginBottom: '0.75rem' }}>
-              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.4rem' }}>🔍 Buscar Reposición Existente</label>
+              <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: '0.4rem' }}>🔍 Buscar Aumento de Caja Existente</label>
               <input
                 type="text"
                 className="form-input"

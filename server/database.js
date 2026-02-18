@@ -41,7 +41,7 @@ const initialize = () => {
         )
       `);
 
-      // Tabla de fondos (para reposición)
+      // Tabla de fondos (para aumento de caja)
       db.run(`
         CREATE TABLE IF NOT EXISTS funds (
           id INTEGER PRIMARY KEY AUTOINCREMENT,

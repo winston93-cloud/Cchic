@@ -272,7 +272,7 @@ export default function Home() {
                       setShowRegistrosMenu(false);
                     }}>
                       <span className="dropdown-item-icon">💵</span>
-                      Reposición de fondos
+                      Aumento de caja
                     </div>
                     <div className="dropdown-divider"></div>
                     <div className="dropdown-item" onClick={() => {
@@ -288,7 +288,7 @@ export default function Home() {
                       setShowRegistrosMenu(false);
                     }}>
                       <span className="dropdown-item-icon">💵</span>
-                      Reposición de fondos
+                      Aumento de caja
                     </div>
                     <div className="dropdown-divider"></div>
                     <div className="dropdown-item" onClick={() => {
@@ -390,7 +390,7 @@ export default function Home() {
               <span>➕</span> Nuevo Egreso
             </motion.button>
 
-            {/* Botón Reposición de Fondos - VERDE */}
+            {/* Botón Aumento de Caja - VERDE */}
             <motion.button
               className="btn btn-success"
               onClick={() => {
@@ -400,7 +400,7 @@ export default function Home() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span>💵</span> Reposición de Fondos
+              <span>💵</span> Aumento de Caja
             </motion.button>
           </div>
 
