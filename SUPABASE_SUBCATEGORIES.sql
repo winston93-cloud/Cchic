@@ -44,8 +44,11 @@ CREATE POLICY "Enable all for subcategories"
 ALTER TABLE expenses ADD COLUMN IF NOT EXISTS subcategory_id BIGINT REFERENCES subcategories(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_expenses_subcategory ON expenses(subcategory_id);
 
--- Actualizar vista expense_details para incluir subcategoría
-CREATE OR REPLACE VIEW expense_details AS
+-- Recrear vista expense_details para incluir subcategoría
+-- (DROP necesario porque REPLACE no permite cambiar número/orden de columnas)
+DROP VIEW IF EXISTS expense_details;
+
+CREATE VIEW expense_details AS
 SELECT
   e.id,
   e.date,
