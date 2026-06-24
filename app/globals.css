@@ -150,8 +150,38 @@ body.totality-theme {
 
 .header-title {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.header-title-row {
+  display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.back-to-servicios-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 227, 253, 0.35);
+  background: transparent;
+  color: var(--secondary);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.back-to-servicios-btn:hover {
+  background: rgba(0, 227, 253, 0.1);
+  box-shadow: var(--glow-cyan);
 }
 
 .logo-icon {

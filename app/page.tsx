@@ -13,6 +13,7 @@ import PeriodForm from '@/components/PeriodForm';
 import FundForm from '@/components/FundForm';
 import DeleteExpensesForm from '@/components/DeleteExpensesForm';
 import MovementDetailReport from '@/components/MovementDetailReport';
+import BackToServiciosAdmin from '@/components/BackToServiciosAdmin';
 import { Expense, Balance, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { getMonthLimitsFromString } from '@/lib/periods';
@@ -219,10 +220,13 @@ export default function Home() {
         transition={{ duration: 0.6 }}
       >
         <div className="header-title">
+          <BackToServiciosAdmin />
+          <div className="header-title-row">
           <div className="logo-icon" aria-hidden>📊</div>
           <div>
             <h1>Monitoreo y Control</h1>
             <p className="header-subtitle">Caja chica · Instituto Winston Churchill</p>
+          </div>
           </div>
         </div>
         <motion.div 
