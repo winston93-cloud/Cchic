@@ -155,7 +155,7 @@ export default function ReportsPanel({ onClose }: ReportsPanelProps) {
             borderRadius: '8px',
             border: '1px solid rgba(0, 0, 0, 0.1)',
             fontSize: '0.9rem',
-            background: 'white',
+            background: 'rgba(255, 255, 255, 0.08)',
             cursor: 'pointer'
           }}
         />

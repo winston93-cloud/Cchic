@@ -20,8 +20,8 @@ export default function ExpenseList({ expenses, onEdit, onDelete, formatCurrency
       >
         <div className="empty-icon">📋</div>
         <p className="empty-message">No hay egresos registrados</p>
-        <p style={{ color: 'var(--gray-700)' }}>
-          Comienza agregando un nuevo egreso para ver la magia ✨
+        <p className="text-muted">
+          Comienza agregando un nuevo egreso para registrar movimientos.
         </p>
       </motion.div>
     );
@@ -66,7 +66,7 @@ export default function ExpenseList({ expenses, onEdit, onDelete, formatCurrency
               </td>
               <td>{expense.correspondent_to || '-'}</td>
               <td>
-                <strong style={{ color: 'var(--primary-blue)' }}>
+                <strong className="text-accent">
                   {expense.executor}
                 </strong>
               </td>

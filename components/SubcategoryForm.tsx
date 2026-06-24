@@ -234,7 +234,7 @@ export default function SubcategoryForm({ onClose }: SubcategoryFormProps) {
                   exit={{ opacity: 0, y: -10 }}
                   style={{
                     position: 'absolute', top: '100%', left: 0, right: 0,
-                    background: 'white', border: '1px solid var(--gray-300)', borderRadius: '12px',
+                    background: 'rgba(255, 255, 255, 0.08)', border: '1px solid var(--gray-300)', borderRadius: '12px',
                     boxShadow: 'var(--shadow-lg)', maxHeight: '250px', overflowY: 'auto', zIndex: 1000, marginTop: '0.5rem'
                   }}
                 >
@@ -328,7 +328,7 @@ export default function SubcategoryForm({ onClose }: SubcategoryFormProps) {
                       exit={{ opacity: 0, scale: 0.95 }}
                       style={{
                         position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                        background: 'white', border: '2px solid var(--gray-300)', borderRadius: '16px',
+                        background: 'rgba(255, 255, 255, 0.08)', border: '2px solid var(--gray-300)', borderRadius: '16px',
                         boxShadow: 'var(--shadow-xl)', padding: '1.5rem', zIndex: 2000, maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto', width: '90vw'
                       }}
                     >

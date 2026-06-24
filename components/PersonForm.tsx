@@ -338,7 +338,7 @@ export default function PersonForm({ onClose }: PersonFormProps) {
                   top: '100%',
                   left: 0,
                   right: 0,
-                  background: 'white',
+                  background: 'rgba(255, 255, 255, 0.08)',
                   border: '1px solid var(--gray-300)',
                   borderRadius: '12px',
                   boxShadow: 'var(--shadow-lg)',

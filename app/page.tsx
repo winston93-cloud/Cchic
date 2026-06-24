@@ -219,9 +219,10 @@ export default function Home() {
         transition={{ duration: 0.6 }}
       >
         <div className="header-title">
-          <div className="logo-icon">💰</div>
+          <div className="logo-icon" aria-hidden>📊</div>
           <div>
             <h1>Monitoreo y Control</h1>
+            <p className="header-subtitle">Caja chica · Instituto Winston Churchill</p>
           </div>
         </div>
         <motion.div 
@@ -429,106 +430,62 @@ export default function Home() {
                 transition={{ delay: 0.4 }}
               >
                 <motion.div 
-                  className="stat-card"
-                  whileHover={{ y: -8 }}
-                  style={{ borderLeftColor: '#00E676' }}
+                  className="stat-card stat-card--funds"
+                  whileHover={{ y: -4 }}
                 >
-                  <div className="stat-label">💰 Total Fondos</div>
-                  <div className="stat-value" style={{ color: '#00E676' }}>
+                  <div className="stat-label">Total fondos</div>
+                  <div className="stat-value stat-value--funds">
                     {formatCurrency(balance.totalFunds)}
                   </div>
                 </motion.div>
                 <motion.div 
-                  className="stat-card"
-                  whileHover={{ y: -8 }}
-                  style={{ borderLeftColor: '#FF1744' }}
+                  className="stat-card stat-card--expenses"
+                  whileHover={{ y: -4 }}
                 >
-                  <div className="stat-label">💸 Total Egresos</div>
-                  <div className="stat-value" style={{ color: '#FF1744' }}>
+                  <div className="stat-label">Total egresos</div>
+                  <div className="stat-value stat-value--expenses">
                     {formatCurrency(balance.totalExpenses)}
                   </div>
                 </motion.div>
                 <motion.div 
-                  className="stat-card"
-                  whileHover={{ y: -8 }}
-                  style={{ borderLeftColor: '#00E5FF' }}
+                  className="stat-card stat-card--records"
+                  whileHover={{ y: -4 }}
                 >
-                  <div className="stat-label">📊 Total Registros</div>
-                  <div className="stat-value" style={{ color: '#00E5FF' }}>
+                  <div className="stat-label">Registros del período</div>
+                  <div className="stat-value stat-value--records">
                     {expenses.length}
                   </div>
                 </motion.div>
               </motion.div>
 
-              {/* Filtro por mes - Diseño bonito */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                className="period-filter"
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                style={{
-                  marginTop: '1.5rem',
-                  marginBottom: '1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1rem',
-                  padding: '1rem 1.5rem',
-                  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-                  borderRadius: '16px',
-                  backdropFilter: 'blur(20px)',
-                  border: '2px solid rgba(102, 126, 234, 0.3)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-                }}
+                transition={{ delay: 0.35 }}
               >
-                <div style={{ 
-                  fontSize: '1.5rem',
-                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
-                }}>
-                  📅
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <label style={{ 
-                    fontSize: '0.75rem', 
-                    fontWeight: 600, 
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
-                  }}>
-                    Período
-                  </label>
+                <div className="period-filter__icon" aria-hidden>📅</div>
+                <div>
+                  <div className="period-filter__label">Período</div>
                   <div style={{ position: 'relative' }}>
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    <button
+                      type="button"
+                      className="period-filter__picker"
                       onClick={() => {
-                        const input = document.getElementById('month-picker') as HTMLInputElement;
-                        input?.showPicker?.();
-                      }}
-                      style={{
-                        padding: '0.5rem 1.25rem',
-                        fontSize: '1.1rem',
-                        fontWeight: 700,
-                        color: 'white',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        borderRadius: '10px',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-                        border: '2px solid rgba(255, 255, 255, 0.2)',
-                        transition: 'all 0.2s ease'
+                        const input = document.getElementById('month-picker') as HTMLInputElement
+                        input?.showPicker?.()
                       }}
                     >
                       <span>
                         {(() => {
-                          const date = new Date(selectedMonth + '-15'); // Usar día 15 para evitar problemas de timezone
-                          const monthName = date.toLocaleDateString('es-MX', { month: 'long' });
-                          const year = date.toLocaleDateString('es-MX', { year: 'numeric' });
-                          return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${year}`;
+                          const date = new Date(selectedMonth + '-15')
+                          const monthName = date.toLocaleDateString('es-MX', { month: 'long' })
+                          const year = date.toLocaleDateString('es-MX', { year: 'numeric' })
+                          return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${year}`
                         })()}
                       </span>
-                      <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>▼</span>
-                    </motion.div>
+                      <span aria-hidden style={{ opacity: 0.7 }}>▼</span>
+                    </button>
                     <input
                       id="month-picker"
                       type="month"
@@ -538,45 +495,17 @@ export default function Home() {
                         position: 'absolute',
                         opacity: 0,
                         pointerEvents: 'none',
-                        width: '1px',
-                        height: '1px'
+                        width: 1,
+                        height: 1,
                       }}
+                      aria-label="Seleccionar mes"
                     />
                   </div>
                 </div>
-                <motion.div
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                  transition={{ repeat: Infinity, duration: 2, repeatType: "reverse" }}
-                  style={{
-                    marginLeft: 'auto',
-                    padding: '0.5rem 1rem',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: '10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    border: '1px solid rgba(255, 255, 255, 0.2)'
-                  }}
-                >
-                  <div style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 800,
-                    color: '#00E5FF',
-                    textShadow: '0 0 10px rgba(0, 229, 255, 0.5)'
-                  }}>
-                    {expenses.length}
-                  </div>
-                  <div style={{
-                    fontSize: '0.7rem',
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    fontWeight: 600
-                  }}>
-                    Registros
-                  </div>
-                </motion.div>
+                <div className="period-filter__count">
+                  <div className="period-filter__count-value">{expenses.length}</div>
+                  <div className="period-filter__count-label">Registros</div>
+                </div>
               </motion.div>
 
               {loading ? (

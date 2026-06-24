@@ -616,7 +616,7 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
               style={{
-                background: 'white',
+                background: 'rgba(255, 255, 255, 0.08)',
                 borderRadius: '16px',
                 padding: '2rem',
                 maxWidth: '450px',

@@ -721,7 +721,7 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: personIndex * 0.1 }}
                       style={{
-                        background: 'white',
+                        background: 'rgba(255, 255, 255, 0.08)',
                         borderRadius: '12px',
                         overflow: 'hidden',
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
