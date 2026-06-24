@@ -87,14 +87,45 @@ html[data-theme='light'] {
   color-scheme: light;
 }
 
-body.totality-theme {
+body.totality-theme,
+.pos-totality-theme.admin-app-shell.totality-theme {
   font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   color: var(--on-surface);
-  background: var(--surface);
   min-height: 100vh;
+  background: #121318;
+}
+
+.pos-totality-theme.admin-app-shell.totality-theme {
+  position: relative;
+  isolation: isolate;
+}
+
+.pos-totality-theme.admin-app-shell.totality-theme::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(0, 227, 253, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 80% 90%, rgba(231, 209, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 40%, rgba(255, 215, 0, 0.06) 0%, transparent 45%),
+    #121318;
+}
+
+.pos-totality-theme.admin-app-shell.totality-theme > * {
+  position: relative;
+  z-index: 1;
+}
+
+html[data-theme='light'] .pos-totality-theme.admin-app-shell.totality-theme::before {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(0, 227, 253, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 80% 90%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+    #f0ece3;
 }
 
 .totality-theme h1,

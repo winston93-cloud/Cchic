@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import './globals.css'
+import './pos-totality-theme.css'
 import ThemeProviders from '@/components/ThemeProviders'
 import { DEFAULT_THEME, THEME_STORAGE_KEY } from '@/lib/theme'
 
@@ -33,8 +34,15 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
-      <body className={`totality-theme ${inter.className}`}>
-        <ThemeProviders>{children}</ThemeProviders>
+      <body className={inter.className}>
+        <ThemeProviders>
+          <div
+            className="pos-totality-theme admin-app-shell totality-theme"
+            data-admin-theme="totality-festival"
+          >
+            {children}
+          </div>
+        </ThemeProviders>
       </body>
     </html>
   )
