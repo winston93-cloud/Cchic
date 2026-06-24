@@ -245,8 +245,8 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
               position: 'fixed',
               top: '20px',
               right: '20px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
+              background: 'linear-gradient(135deg, #fff6df 0%, #ffd700 100%)',
+              color: '#3a3000',
               padding: '1rem 1.5rem',
               borderRadius: '12px',
               boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
@@ -293,7 +293,7 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
             <div>
               <form onSubmit={handleSave}>
                 <div style={{ 
-                  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                  background: 'linear-gradient(135deg, rgba(255, 246, 223, 0.12) 0%, rgba(255, 215, 0, 0.18) 100%)',
                   padding: '1rem',
                   borderRadius: '12px',
                   marginBottom: '1rem'
@@ -413,8 +413,8 @@ export default function PeriodForm({ onClose, onSave }: PeriodFormProps) {
                     style={{
                       flex: 1,
                       padding: '0.65rem',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      color: 'white',
+                      background: 'linear-gradient(135deg, #fff6df 0%, #ffd700 100%)',
+                      color: '#3a3000',
                       border: 'none',
                       borderRadius: '8px',
                       fontSize: '0.9rem',

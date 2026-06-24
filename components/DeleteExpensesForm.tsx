@@ -236,11 +236,11 @@ export default function DeleteExpensesForm({ onClose, onUpdate }: DeleteExpenses
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #fff6df 0%, #ffd700 100%)',
                 padding: '0.75rem 1rem',
                 borderRadius: '12px',
                 marginBottom: '1rem',
-                color: 'white',
+                color: '#3a3000',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
@@ -312,11 +312,11 @@ export default function DeleteExpensesForm({ onClose, onUpdate }: DeleteExpenses
                         style={{
                           borderBottom: '1px solid var(--gray-200)',
                           background: selectedExpenses.includes(expense.id) 
-                            ? 'rgba(102, 126, 234, 0.1)' 
+                            ? 'rgba(255, 215, 0, 0.12)' 
                             : index % 2 === 0 ? 'white' : 'var(--gray-50)',
                           cursor: 'pointer'
                         }}
-                        whileHover={{ background: 'rgba(102, 126, 234, 0.05)' }}
+                        whileHover={{ background: 'rgba(255, 215, 0, 0.08)' }}
                         onClick={() => handleSelectExpense(expense.id, !selectedExpenses.includes(expense.id))}
                       >
                         <td style={{ padding: '0.75rem', textAlign: 'center' }}>

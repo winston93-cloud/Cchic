@@ -1,11 +1,17 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Space_Grotesk } from 'next/font/google'
 import './globals.css'
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+})
 
 const inter = Inter({
   subsets: ['latin'],
-  display: 'swap',
   variable: '--font-inter',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -19,8 +25,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es" className={inter.variable}>
-      <body className={inter.className}>{children}</body>
+    <html lang="es" className={`${spaceGrotesk.variable} ${inter.variable}`}>
+      <body className={`totality-theme ${inter.className}`}>{children}</body>
     </html>
   )
 }

@@ -137,7 +137,7 @@ export default function ReportsPanel({ onClose }: ReportsPanelProps) {
       <div style={{ 
         marginBottom: '1.5rem',
         padding: '1rem',
-        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+        background: 'linear-gradient(135deg, rgba(255, 246, 223, 0.12) 0%, rgba(255, 215, 0, 0.18) 100%)',
         borderRadius: '12px',
         display: 'flex',
         alignItems: 'center',
@@ -243,7 +243,7 @@ export default function ReportsPanel({ onClose }: ReportsPanelProps) {
                   </td>
                 </motion.tr>
               ))}
-              <tr style={{ background: 'var(--gradient-primary)', color: 'white', fontWeight: 700, fontSize: '1.1rem' }}>
+              <tr style={{ background: 'var(--gradient-primary)', color: 'var(--on-primary)', fontWeight: 700, fontSize: '1.1rem' }}>
                 <td colSpan={activeTab === 'person-category' ? 2 : 1}>
                   <strong>TOTAL GENERAL</strong>
                 </td>

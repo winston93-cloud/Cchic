@@ -530,12 +530,12 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
                   style={{
                     marginTop: '0.5rem',
                     padding: '0.5rem 0.75rem',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #fff6df 0%, #ffd700 100%)',
                     borderRadius: '12px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    color: 'white',
+                    color: '#3a3000',
                     fontSize: '0.9rem'
                   }}
                 >
@@ -570,7 +570,7 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
                       borderRadius: '50%',
                       width: '24px',
                       height: '24px',
-                      color: 'white',
+                      color: '#3a3000',
                       fontSize: '1.25rem',
                       cursor: 'pointer',
                       display: 'flex',
@@ -671,12 +671,12 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
                   style={{
                     marginTop: '0.5rem',
                     padding: '0.5rem 0.75rem',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #fff6df 0%, #ffd700 100%)',
                     borderRadius: '12px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    color: 'white',
+                    color: '#3a3000',
                     fontSize: '0.9rem'
                   }}
                 >
@@ -708,7 +708,7 @@ export default function ExpenseForm({ expense, onSave, onClose }: ExpenseFormPro
                       borderRadius: '50%',
                       width: '24px',
                       height: '24px',
-                      color: 'white',
+                      color: '#3a3000',
                       fontSize: '1.25rem',
                       cursor: 'pointer',
                       marginLeft: 'auto'

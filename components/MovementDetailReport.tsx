@@ -409,9 +409,9 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
       // Persona
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.setFillColor(102, 126, 234);
+      doc.setFillColor(255, 215, 0);
       doc.rect(14, yPos, 182, 7, 'F');
-      doc.setTextColor(255, 255, 255);
+      doc.setTextColor(58, 48, 0);
       doc.text(`${personGroup.person}`, 16, yPos + 5);
       doc.setTextColor(0, 0, 0);
       yPos += 10;
@@ -438,7 +438,7 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
           head: [['Fecha', 'Recibo', 'Concepto', 'Monto']],
           body: tableData,
           theme: 'striped',
-          headStyles: { fillColor: [118, 75, 162], fontSize: 9 },
+          headStyles: { fillColor: [255, 215, 0], textColor: [58, 48, 0], fontSize: 9 },
           styles: { fontSize: 8, cellPadding: 2 },
           columnStyles: {
             0: { cellWidth: 25 },
@@ -474,7 +474,7 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
     }
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.setFillColor(102, 126, 234);
+    doc.setFillColor(255, 215, 0);
     doc.setTextColor(255, 255, 255);
     doc.rect(130, yPos, 66, 8, 'F');
     doc.text('GRAN TOTAL:', 160, yPos + 5.5, { align: 'right' });
@@ -545,7 +545,7 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                  background: 'linear-gradient(135deg, rgba(255, 246, 223, 0.12) 0%, rgba(255, 215, 0, 0.18) 100%)',
                   padding: '2rem',
                   borderRadius: '16px',
                   marginBottom: '1.5rem'
@@ -617,8 +617,8 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
                     padding: '1rem',
                     background: loading 
                       ? 'rgba(0, 0, 0, 0.1)'
-                      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
+                      : 'linear-gradient(135deg, #fff6df 0%, #ffd700 100%)',
+                    color: '#3a3000',
                     border: 'none',
                     borderRadius: '12px',
                     fontSize: '1.05rem',
@@ -656,11 +656,11 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
               >
                 {/* Header del reporte */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #fff6df 0%, #ffd700 100%)',
                   padding: '1.5rem',
                   borderRadius: '12px',
                   marginBottom: '1.5rem',
-                  color: 'white'
+                  color: '#3a3000'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                     <div>
@@ -731,9 +731,9 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
                     >
                       {/* Persona Header */}
                       <div style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        background: 'linear-gradient(135deg, #fff6df 0%, #ffd700 100%)',
                         padding: '1rem 1.5rem',
-                        color: 'white'
+                        color: '#3a3000'
                       }}>
                         <h4 style={{ fontSize: '1.1rem', fontWeight: '700' }}>
                           👤 {personGroup.person}
@@ -749,7 +749,7 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
                             gap: '0.5rem',
                             marginBottom: '0.8rem',
                             padding: '0.6rem',
-                            background: 'rgba(102, 126, 234, 0.05)',
+                            background: 'rgba(255, 215, 0, 0.08)',
                             borderRadius: '8px'
                           }}>
                             <span style={{
@@ -804,7 +804,7 @@ export default function MovementDetailReport({ onClose }: MovementDetailReportPr
 
                       {/* Total por persona */}
                       <div style={{
-                        background: 'rgba(102, 126, 234, 0.1)',
+                        background: 'rgba(255, 215, 0, 0.12)',
                         padding: '1rem 1.5rem',
                         display: 'flex',
                         justifyContent: 'space-between',

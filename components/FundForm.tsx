@@ -419,9 +419,9 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
                   style={{
                     marginTop: '0.75rem',
                     padding: '0.75rem 1rem',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #fff6df 0%, #ffd700 100%)',
                     borderRadius: '12px',
-                    boxShadow: '0 4px 6px rgba(102, 126, 234, 0.3)',
+                    boxShadow: '0 4px 6px rgba(255, 215, 0, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
@@ -441,11 +441,11 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
                       👤
                     </div>
                     <div>
-                      <div style={{ color: 'white', fontWeight: 600, fontSize: '1rem' }}>
+                      <div style={{ color: '#3a3000', fontWeight: 600, fontSize: '1rem' }}>
                         {selectedPerson.name}
                       </div>
                       {selectedPerson.identification && (
-                        <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                        <div style={{ color: 'rgba(58,48,0,0.75)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
                           🆔 {selectedPerson.identification}
                         </div>
                       )}
@@ -466,7 +466,7 @@ export default function FundForm({ onClose, onUpdate }: FundFormProps) {
                       borderRadius: '50%',
                       width: '32px',
                       height: '32px',
-                      color: 'white',
+                      color: '#3a3000',
                       fontSize: '1.5rem',
                       cursor: 'pointer',
                       display: 'flex',
