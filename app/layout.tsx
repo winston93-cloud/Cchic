@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Servicios Generales',
+  title: 'Monitoreo y Control',
   description: 'Sistema de control de caja chica - Sistemas de Información Paez',
 }
 

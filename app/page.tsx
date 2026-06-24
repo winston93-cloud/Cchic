@@ -221,7 +221,7 @@ export default function Home() {
         <div className="header-title">
           <div className="logo-icon">💰</div>
           <div>
-            <h1>Servicios Generales</h1>
+            <h1>Monitoreo y Control</h1>
           </div>
         </div>
         <motion.div 
