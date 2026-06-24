@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import './globals.css'
+import ThemeProviders from '@/components/ThemeProviders'
+import { DEFAULT_THEME, THEME_STORAGE_KEY } from '@/lib/theme'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -24,9 +26,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const themeBootstrap = `(function(){try{var k=${JSON.stringify(THEME_STORAGE_KEY)};var d=${JSON.stringify(DEFAULT_THEME)};var t=localStorage.getItem(k);if(t!=='light'&&t!=='dark')t=d;document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t;}catch(e){document.documentElement.setAttribute('data-theme',${JSON.stringify(DEFAULT_THEME)});}})();`
+
   return (
-    <html lang="es" className={`${spaceGrotesk.variable} ${inter.variable}`}>
-      <body className={`totality-theme ${inter.className}`}>{children}</body>
+    <html lang="es" className={`${spaceGrotesk.variable} ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+      </head>
+      <body className={`totality-theme ${inter.className}`}>
+        <ThemeProviders>{children}</ThemeProviders>
+      </body>
     </html>
   )
 }

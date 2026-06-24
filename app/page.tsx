@@ -14,6 +14,7 @@ import FundForm from '@/components/FundForm';
 import DeleteExpensesForm from '@/components/DeleteExpensesForm';
 import MovementDetailReport from '@/components/MovementDetailReport';
 import BackToServiciosAdmin from '@/components/BackToServiciosAdmin';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Expense, Balance, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { getMonthLimitsFromString } from '@/lib/periods';
@@ -229,6 +230,8 @@ export default function Home() {
           </div>
           </div>
         </div>
+        <div className="header-actions">
+          <ThemeToggle />
         <motion.div 
           className="balance-display"
           whileHover={{ scale: 1.05 }}
@@ -239,6 +242,7 @@ export default function Home() {
             {formatCurrency(balance.balance)}
           </div>
         </motion.div>
+        </div>
       </motion.header>
 
       <main className="main-content">
