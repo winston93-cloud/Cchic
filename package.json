@@ -22,7 +22,7 @@
   "author": "Sistemas de Información Paez",
   "license": "MIT",
   "dependencies": {
-    "@supabase/supabase-js": "^2.87.1",
+    "@insforge/sdk": "^1.4.2",
     "framer-motion": "^10.18.0",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
