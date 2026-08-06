@@ -15,6 +15,7 @@ import DeleteExpensesForm from '@/components/DeleteExpensesForm';
 import MovementDetailReport from '@/components/MovementDetailReport';
 import BackToServiciosAdmin from '@/components/BackToServiciosAdmin';
 import ThemeToggle from '@/components/ThemeToggle';
+import LogoutButton from '@/components/LogoutButton';
 import { Expense, Balance, Person } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { getMonthLimitsFromString } from '@/lib/periods';
@@ -232,6 +233,7 @@ export default function Home() {
         </div>
         <div className="header-actions">
           <ThemeToggle />
+          <LogoutButton />
         <motion.div 
           className="balance-display"
           whileHover={{ scale: 1.05 }}
